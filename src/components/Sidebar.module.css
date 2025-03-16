@@ -1,0 +1,159 @@
+.sidebar {
+  width: 250px;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: var(--sidebar-bg);
+  color: var(--sidebar-fg);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.profileSection {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-bottom: 1px solid var(--sidebar-border);
+  margin-bottom: 20px;
+}
+
+.avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid white;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.userInfo {
+  text-align: center;
+}
+
+.userInfo h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.navigation {
+  flex: 1;
+  padding: 0 10px;
+}
+
+.navigation ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.navigation li {
+  margin-bottom: 5px;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.navItem:hover {
+  background-color: var(--sidebar-hover);
+  color: var(--accent);
+}
+
+.active {
+  background-color: var(--sidebar-active);
+  color: var(--accent);
+}
+
+.icon {
+  margin-right: 10px;
+  font-size: 18px;
+  width: 24px;
+  text-align: center;
+}
+
+.sidebarFooter {
+  padding: 20px;
+  border-top: 1px solid var(--sidebar-border);
+}
+
+.signOutButton {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 12px 15px;
+  background-color: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--sidebar-fg);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.signOutButton:hover {
+  background-color: rgba(255, 99, 71, 0.1);
+  color: #ff6347;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    height: 60px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    top: auto;
+    flex-direction: row;
+    padding: 0;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .profileSection,
+  .sidebarFooter {
+    display: none;
+  }
+
+  .navigation {
+    padding: 0;
+    width: 100%;
+  }
+
+  .navigation ul {
+    display: flex;
+    justify-content: space-around;
+    height: 100%;
+  }
+
+  .navigation li {
+    margin-bottom: 0;
+    flex: 1;
+  }
+
+  .navItem {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 0;
+    height: 100%;
+    border-radius: 0;
+  }
+}
