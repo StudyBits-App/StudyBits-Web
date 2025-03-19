@@ -1,7 +1,7 @@
 :root {
-  --background: #ffffff;
+  --background: #1E1E1E;
   --foreground: #171717;
-  --sidebar-bg: #f5f5f5;
+  --sidebar-bg: #121212;
   --sidebar-fg: #171717;
   --sidebar-hover: #e0e0e0;
   --sidebar-active: #d0d0d0;
@@ -11,9 +11,9 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
+    --background: #1E1E1E;
     --foreground: #ededed;
-    --sidebar-bg: #1e1e1e;
+    --sidebar-bg:#121212 ;
     --sidebar-fg: #ededed;
     --sidebar-hover: rgba(59, 158, 191, 0.1);
     --sidebar-active: rgba(59, 158, 191, 0.2);

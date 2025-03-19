@@ -15,13 +15,9 @@ function AuthWrapper({ children }: {children: React.ReactNode}) {
     const publicRoutes = ['/signin', '/signup']; 
     if (!loading) {
       if (!user && !publicRoutes.includes(pathname)) {
-        if (pathname !== '/signin') {
           router.push('/signin');
-        }
       } else if (user && publicRoutes.includes(pathname)) {
-        if (pathname !== '/dashboard') {
-          router.push('/dashboard');
-        }
+          router.push('/');
       }
     }
   }, [user, loading, pathname, router]);
