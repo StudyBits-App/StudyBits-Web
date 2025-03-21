@@ -124,6 +124,9 @@ const CreateQuestion = () => {
       setAnswers([]);
       setHints([]);
     }
+    else {
+      error();
+    }
   };
 
   const addAnswer = () => {

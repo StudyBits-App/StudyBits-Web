@@ -26,14 +26,11 @@
   
   .uploadBox,
   .uploadProfileBtn {
-    display: inline-block;
     padding: 10px 15px;
     background-color: #26282e;
     color: #ddd;
     font-weight: bold;
     border-radius: 5px;
-    cursor: pointer;
-    margin-top: 10px;
   }
   
   .profileSection {

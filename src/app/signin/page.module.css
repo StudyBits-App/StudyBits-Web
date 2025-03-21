@@ -1,5 +1,5 @@
 .wrapper {
-  height: 100vh; 
+  height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -11,11 +11,11 @@
   width: 90%;
   padding: 2rem;
   text-align: center;
-  background: rgba(255, 255, 255, 0.1); 
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
   color: white;
-  backdrop-filter: blur(10px); 
+  backdrop-filter: blur(10px);
 }
 
 .input {
@@ -29,11 +29,15 @@
   margin-top: 1rem;
   margin-bottom: 1rem;
 }
-
-.input:focus {
-    outline: none;
-}
+.input::placeholder {
+    color: rgba(255, 255, 255, 0.6); 
+    font-weight: 500;
+  }
   
+.input:focus {
+  outline: none;
+}
+
 .primaryButton,
 .googleButton {
   width: 100%;
@@ -80,5 +84,5 @@
 }
 
 .title {
-    margin-bottom: 2rem;
+  margin-bottom: 2rem;
 }

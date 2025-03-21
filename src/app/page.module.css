@@ -5,7 +5,6 @@
   padding: 50px;
   color: #e0e0e0; 
   min-height: 100vh;
-  font-family: Arial, sans-serif;
 }
 
 .paddedSection {
@@ -15,39 +14,6 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); 
 }
 
-.course {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  text-align: center;
-  padding: 20px;
-  border: 2px dashed #3b9ebf; 
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  background-color: #1a2b34; 
-}
-
-.course:hover {
-  background-color: #285b6f; 
-  transform: scale(1.02);
-  border-color: #4dbad6; 
-}
-
-.courseName {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #4dbad6; 
-  margin: 0;
-}
-
-.courseDescription {
-  font-size: 0.9rem;
-  color: #c0c0c0; 
-  margin: 5px 0 0 0;
-}
-
 @media (max-width: 768px) {
   .container {
     padding: 10px;
@@ -55,17 +21,5 @@
 
   .paddedSection {
     padding: 15px;
-  }
-
-  .course {
-    padding: 15px;
-  }
-
-  .courseName {
-    font-size: 1rem;
-  }
-
-  .courseDescription {
-    font-size: 0.8rem;
   }
 }
