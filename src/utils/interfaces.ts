@@ -32,4 +32,11 @@ export interface Hint {
     title: string;
     content: string;
     image: string;
-  }
+}
+
+export interface Unit {
+    key: string;
+    name: string;
+    description: string;
+    order: number;
+}

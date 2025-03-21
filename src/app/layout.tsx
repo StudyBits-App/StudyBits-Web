@@ -47,7 +47,11 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   const publicRoutes = ["/signin", "/signup"];
   const isPublicRoute = publicRoutes.includes(pathname);
 
-  if (isPublicRoute || !user || (!hasChannel && pathname === "/createchannel")) {
+  if (
+    isPublicRoute ||
+    !user ||
+    (!hasChannel && pathname === "/createchannel")
+  ) {
     return <>{children}</>;
   }
 
@@ -66,6 +70,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <title>StudyBits</title>
       <body>
         <AuthProvider>
           <AuthWrapper>{children}</AuthWrapper>
