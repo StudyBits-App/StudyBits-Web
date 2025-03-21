@@ -1,0 +1,50 @@
+.card {
+    display: flex;
+    background-color: #1e1e1e;
+    color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 16px;
+    width: 100%;
+    margin-bottom: 16px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    flex-direction: column;
+  }
+
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.3);
+    border-color: rgba(77, 186, 214, 0.5);
+  }
+  
+  .selected {
+    border-color: #4dbad6;
+    box-shadow: 0px 6px 12px rgba(77, 186, 214, 0.3);
+    transform: translateY(-3px);
+  }
+  
+  .unselected {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .contentTitle {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #4dbad6;
+    margin-left: 10px;
+
+  }
+  
+  .subText {
+    font-size: 0.9rem;
+    color: #c0c0c0;
+    margin: 4px 0 0 0;
+    line-height: 1.4;
+  }
+  
+  .listSpacing {
+    margin-top: 12px;
+    margin-bottom: 12px;
+  }
+  

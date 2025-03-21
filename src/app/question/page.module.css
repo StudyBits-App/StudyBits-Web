@@ -1,55 +1,306 @@
 .container {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    padding: 50px;
-    background-color: #1E1E1E;
-    color: #e0e0e0; 
-    min-height: 100vh;
-    font-family: Arial, sans-serif;
-  }
-  
-  .title {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 20px;
-  }
-  
-  .input {
-    width: 100%;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #444;
-    font-size: 16px;
-    background: #333;
-    color: white;
-  }
-  
-  .section {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding:10px ;
-    font-size: 20px;
-  }
-  
-  .editButton,
-  .addButton {
-    background: none;
-    border: none;
-    color: #00aaff;
-    font-size: 50px;
-    cursor: pointer;
-  }
-  
-  .submitButton {
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: 5px;
-    background: white;
-    color: black;
-    font-size: 16px;
-    margin-top: 20px;
-  }
-  
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 50px;
+}
+
+.title {
+  margin-bottom: 20px;
+}
+
+.input {
+  padding: 15px;
+  border-radius: 5px;
+  border: 1px solid #444;
+  font-size: 16px;
+  background: #2a2a2a;
+  resize: vertical;
+}
+
+.section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  font-size: 20px;
+  border-bottom: 1px solid #333;
+}
+
+.iconButton {
+  background: none;
+  border: none;
+  color: #00aaff;
+  font-size: 24px;
+  transition: transform 0.2s ease-in-out;
+  padding: 10px;
+}
+
+.iconButton:hover {
+  transform: scale(1.2);
+}
+
+.answerContainer {
+  display: flex;
+  align-items: center;
+  background: #2a2a2a;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  margin-bottom: 10px;
+}
+
+.correct {
+  border: 2px solid #28a745;
+  background-color: rgba(40, 167, 69, 0.1);
+}
+
+.incorrect {
+  border: 1px solid #444;
+}
+
+.answerInput {
+  padding: 15px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: white;
+  font-size: 16px;
+  width: 100%;
+}
+
+.answerInput:focus {
+  outline: none;
+}
+
+.answerActions {
+  display: flex;
+  margin-right: 5px;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+
+.modalContainer {
+  background-color: #252525;
+  width: 90%;
+  max-width: 800px;
+  max-height: 900px;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.modalTitle {
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.modalHintInputContent {
+  background-color: #333333;
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 16px;
+  width: 100%;
+  border: 1px solid #444;
+  margin-bottom: 12px;
+  transition: border-color 0.2s;
+  max-height: 150px;
+  resize: vertical;
+}
+
+.imageContainer {
+  position: relative;
+  margin: 12px 0;
+}
+
+.image {
+  max-width: auto;
+  max-height: 200px;
+  object-fit: contain;
+  border-radius: 8px;
+  background-color: #1a1a1a;
+  padding: 10px;
+  border: 1px solid #444;
+}
+
+.removeImageBtn {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.fileInput {
+  background-color: #333;
+  color: white;
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #444;
+  margin-bottom: 12px;
+}
+
+.modalButtonContainer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.submitButton {
+  background-color: #00aaff;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 6px;
+  border: none;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.cancelButton {
+  background-color: transparent;
+  color: #e0e0e0;
+  padding: 12px 20px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background-color 0.2s;
+}
+
+.cancelButton:hover {
+  background-color: rgba(220, 53, 69, 0.1);
+  border-color: #dc3545;
+}
+
+.toggleButton {
+  background-color: transparent;
+  color: #28a745; 
+  padding: 12px 20px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background-color 0.2s, border-color 0.2s;
+  border-color: #28a745;
+}
+
+.toggleButton:hover {
+  background-color: rgba(40, 167, 69, 0.1);
+  border-color: #218838;
+}
+
+.hintContainer {
+  background-color: #1e1e1e;
+  border-radius: 12px;
+  padding: 15px;
+  border: 1px solid #444;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.hintCard {
+  display: flex;
+  align-items: flex-start;
+  background: #333333;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  position: relative;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.hintContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: calc(100% - 40px);
+}
+
+.hintTitle {
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 8px;
+  text-align: left;
+  word-break: break-word;
+}
+
+.hintImageContainer {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.hintImage {
+  max-height: 250px;
+  max-width: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.hintDescription {
+  font-size: 14px;
+  color: #bbbbbb;
+  text-align: left;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.hintButtonsVertical {
+  display: flex;  
+  flex-direction: column;  
+  margin-left: 20px;
+
+}
+
+.hintEditButton, .hintDeleteButton {
+  background: none;
+  border: none;
+  font-size: 14px;
+  padding: 5px;  
+}
+
+.hintEditButton {
+  color: #007bff;
+}
+
+.hintDeleteButton {
+  color: #dc3545;
+}

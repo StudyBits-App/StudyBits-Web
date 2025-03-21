@@ -20,3 +20,16 @@ export interface Course {
     description: string;
     lastModified: number
 }
+
+export interface Answer {
+    key: string;
+    content: string,
+    answer: boolean,
+}
+
+export interface Hint {
+    key: string;
+    title: string;
+    content: string;
+    image: string;
+  }

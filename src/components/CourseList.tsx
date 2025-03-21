@@ -6,13 +6,11 @@ import { getUserCourseList } from "@/sevices/getUserData";
 import { useAuth } from "@/hooks/authContext";
 
 interface CourseListProps {
-  collectionName: string;
   link?: string;
   params?: { [key: string]: string | number };
 }
 
 const CourseList: React.FC<CourseListProps> = ({
-  collectionName,
   params,
   link
 }) => {
@@ -52,12 +50,6 @@ const CourseList: React.FC<CourseListProps> = ({
             params={{ ...params, id: courseId }}
           />
         ))}
-
-        {courseIds.length === 0 && collectionName === "learningCourses" && (
-          <p>
-            You haven&apos;t started learning any courses yet.
-          </p>
-        )}
       </div>
     </div>
   );

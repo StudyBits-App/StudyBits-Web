@@ -35,7 +35,6 @@ const UserChannelPage = () => {
         <ChannelDisplay id={user?.uid as string} displayBanner={true} />
       </div>
       <CourseList
-        collectionName="userCourses"
         link="/"
       />
       <div className={styles.paddedSection}>
