@@ -1,0 +1,84 @@
+.wrapper {
+  height: 100vh; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to bottom right, #510083, #8d39ab, #ee7200);
+}
+
+.formContainer {
+  max-width: 400px;
+  width: 90%;
+  padding: 2rem;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1); 
+  border-radius: 16px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  color: white;
+  backdrop-filter: blur(10px); 
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 1rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.input:focus {
+    outline: none;
+}
+  
+.primaryButton,
+.googleButton {
+  width: 100%;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: transform 0.2s ease-in-out;
+  margin-top: 20px;
+}
+
+.primaryButton {
+  background-color: white;
+  color: black;
+  font-weight: bold;
+}
+
+.googleButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  color: black;
+  font-weight: bold;
+}
+
+.dividerContainer {
+  display: flex;
+  align-items: center;
+  margin: 1.5rem;
+}
+
+.divider {
+  flex-grow: 1;
+  height: 1px;
+  background-color: white;
+  opacity: 0.5;
+}
+
+.dividerText {
+  margin: 0 1rem;
+  font-weight: bold;
+  opacity: 0.8;
+}
+
+.title {
+    margin-bottom: 2rem;
+}
