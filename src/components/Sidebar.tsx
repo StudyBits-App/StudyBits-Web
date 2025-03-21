@@ -7,10 +7,11 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/authContext";
 import styles from "./Sidebar.module.css";
 import { getUserChannelPic } from "@/sevices/getUserData";
+import { logOut } from "@/firebase/firebaseAuth";
 
 const Sidebar = () => {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user } = useAuth(); 
   const [profilePic, setProfilePic] = useState("");
 
   useEffect(() => {
@@ -23,7 +24,6 @@ const Sidebar = () => {
   const navItems = [
     { title: "My Channel", path: "/" },
     { title: "Create a question", path: "/question" },
-    { title: "Settings", path: "/settings" },
   ];
 
   return (
@@ -59,7 +59,11 @@ const Sidebar = () => {
         </ul>
       </nav>
 
-      <div className={styles.sidebarFooter}></div>
+      <div className={styles.sidebarFooter}>
+        <button onClick={logOut} className={styles.logoutButton}>
+          Logout
+        </button>
+      </div>
     </div>
   );
 };

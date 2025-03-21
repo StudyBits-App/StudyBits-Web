@@ -96,22 +96,16 @@
   border-top: 1px solid var(--sidebar-border);
 }
 
-.signOutButton {
-  display: flex;
-  align-items: center;
+.logoutButton {
   width: 100%;
-  padding: 12px 15px;
-  background-color: transparent;
+  padding: 10px;
+  margin-top: auto;
+  background-color: #3caee7;
+  color: white;
   border: none;
-  border-radius: 8px;
-  color: var(--sidebar-fg);
   cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.signOutButton:hover {
-  background-color: rgba(255, 99, 71, 0.1);
-  color: #ff6347;
+  font-weight: bold;
+  border-radius: 4px;
 }
 
 @media (max-width: 768px) {

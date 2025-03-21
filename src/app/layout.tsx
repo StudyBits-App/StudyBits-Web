@@ -1,52 +1,69 @@
 "use client";
 
-import { AuthProvider, useAuth } from '@/hooks/authContext';
-import { useRouter, usePathname } from 'next/navigation';
-import React, { useEffect } from 'react';
+import { AuthProvider, useAuth } from "@/hooks/authContext";
+import { useRouter, usePathname } from "next/navigation";
+import React, { useEffect } from "react";
 import "./globals.css";
-import Sidebar from '@/components/Sidebar';
+import Sidebar from "@/components/Sidebar";
+import { useUserChannel } from "@/hooks/userChannel";
 
-function AuthWrapper({ children }: {children: React.ReactNode}) {
-  const { user, loading } = useAuth();
+function AuthWrapper({ children }: { children: React.ReactNode }) {
+  const { user, loading: authLoading } = useAuth();
+  const { hasChannel, loading: channelLoading } = useUserChannel();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    const publicRoutes = ['/signin', '/signup']; 
-    if (!loading) {
-      if (!user && !publicRoutes.includes(pathname)) {
-          router.push('/signin');
-      } else if (user && publicRoutes.includes(pathname)) {
-          router.push('/');
+    const publicRoutes = ["/signin", "/signup"];
+    const onlyAllowedWhenNoChannel = ["/createchannel"];
+
+    if (authLoading || channelLoading) return;
+
+    if (!user) {
+      if (!publicRoutes.includes(pathname)) {
+        router.push("/signin");
+      }
+    } else {
+      if (!hasChannel) {
+        if (!onlyAllowedWhenNoChannel.includes(pathname)) {
+          router.push("/createchannel");
+        }
+      } else {
+        if (publicRoutes.includes(pathname)) {
+          router.push("/");
+        }
       }
     }
-  }, [user, loading, pathname, router]);
+  }, [user, authLoading, hasChannel, channelLoading, pathname, router]);
 
-  if (loading) {
+  if (authLoading || channelLoading) {
     return (
-      <div style={{ textAlign: 'center', marginTop: '50px' }}>
+      <div style={{ textAlign: "center", marginTop: "50px" }}>
         <h1>Loading...</h1>
       </div>
     );
   }
 
-  const isPublicRoute = ['/signin', '/signup'].includes(pathname);
-  
-  if (isPublicRoute || !user) {
+  const publicRoutes = ["/signin", "/signup"];
+  const isPublicRoute = publicRoutes.includes(pathname);
+
+  if (isPublicRoute || !user || (!hasChannel && pathname === "/createchannel")) {
     return <>{children}</>;
   }
-  
+
   return (
     <div className="app-container">
       <Sidebar />
-      <main className="main-content">
-        {children}
-      </main>
+      <main className="main-content">{children}</main>
     </div>
   );
 }
 
-export default function RootLayout({ children } : {children : React.ReactNode}) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <body>

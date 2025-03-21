@@ -37,9 +37,9 @@ const UserChannelPage = () => {
       <CourseList
         link="/"
       />
-      <div className={styles.paddedSection}>
+      {/* <div className={styles.paddedSection}>
         <AddCourse />
-      </div>
+      </div> */}
     </div>
   );
 };
