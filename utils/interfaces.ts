@@ -33,3 +33,10 @@ export interface Unit {
   description: string;
   order: number;
 }
+
+export interface Channel {
+  courses: string[];
+  bannerURL: string;
+  profilePicURL: string;
+  displayName: string;
+}

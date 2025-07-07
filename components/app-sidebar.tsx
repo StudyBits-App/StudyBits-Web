@@ -45,11 +45,11 @@ const data = {
       url: "/answer",
       icon: IconListDetails,
     },
-    // {
-    //   title: "Analytics",
-    //   url: "#",
-    //   icon: IconChartBar,
-    // },
+    {
+      title: "Channel",
+      url: "/channel",
+      icon: IconDatabase,
+    },
     // {
     //   title: "Projects",
     //   url: "#",
