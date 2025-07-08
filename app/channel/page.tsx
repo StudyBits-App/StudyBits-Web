@@ -13,15 +13,15 @@ import { useEffect, useState } from "react";
 export default function ChannelPage() {
   const { user } = useAuth();
   const [channel, setChannel] = useState<Channel | null>(null);
-  const router = useRouter()
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchChannel() {
       if (!user?.uid) return;
       try {
-        const data = await getChannelData(user.uid)
-        if(data === null) {
-          router.replace("/createChannel")
+        const data = await getChannelData(user.uid);
+        if (data === null) {
+          router.replace("/createChannel");
         }
         setChannel(data);
       } catch (error) {
@@ -45,11 +45,18 @@ export default function ChannelPage() {
       <SidebarInset className="p-6 space-y-6 bg-zinc-950 min-h-screen">
         {channel && (
           <>
-            <ChannelDisplay channel={channel} />
+            <ChannelDisplay
+              channel={channel}
+              onPlusClick={() => router.push("/createCourse")}
+            />
             {channel.courses?.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {channel.courses.map((courseId) => (
-                  <CourseCard key={courseId} courseId={courseId} link={"/manageCourse"} />
+                  <CourseCard
+                    key={courseId}
+                    courseId={courseId}
+                    link={"/manageCourse"}
+                  />
                 ))}
               </div>
             )}

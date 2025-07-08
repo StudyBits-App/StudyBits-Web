@@ -1,6 +1,7 @@
 import { db } from "@/firebase/firebase";
 import { Course, Unit } from "@/utils/interfaces";
 import {
+  addDoc,
   collection,
   deleteDoc,
   doc,
@@ -9,6 +10,7 @@ import {
   orderBy,
   query,
   setDoc,
+  updateDoc,
 } from "firebase/firestore";
 
 export const getCourseData = async (courseId: string): Promise<Course> => {
@@ -46,3 +48,22 @@ export async function deleteUnit(courseId: string, unitId: string): Promise<void
   const unitRef = doc(db, "courses", courseId, "units", unitId);
   await deleteDoc(unitRef);
 }
+
+export const createNewCourse = async (uid: string, course: Course): Promise<string> => {
+  try {
+    course.lastModified = new Date().getTime();
+    const courseRef = await addDoc(collection(db, "courses"), course);
+    const docId = courseRef.id;
+    await updateDoc(courseRef, { key: docId, numQuestions: 0 });
+
+    const channelRef = doc(db, "channels", uid);
+    const channelDoc = await getDoc(channelRef);
+    const currentCourses = channelDoc.data()?.courses || [];
+    await updateDoc(channelRef, { courses: [...currentCourses, docId] });
+
+    return docId;
+  } catch (error) {
+    console.error("Error in createNewCourse:", error);
+    throw error;
+  }
+};

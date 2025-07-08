@@ -27,6 +27,15 @@ export interface Course {
   lastModified: number;
 }
 
+export const defaultCourse: Course = {
+  key: "",
+  creator: "",
+  picUrl: "",
+  name: "",
+  description: "",
+  lastModified: new Date().getTime(),
+};
+
 export interface Unit {
   key: string;
   name: string;
