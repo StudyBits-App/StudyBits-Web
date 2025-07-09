@@ -24,9 +24,19 @@ export const getCourseData = async (courseId: string): Promise<Course> => {
   }
 };
 
-export async function getUnitsForCourse(courseId: string): Promise<Unit[]> {
-  if (!courseId) throw new Error("courseId is required");
+export async function getUnitForCourse(courseId: string, unitId: string): Promise<Unit> {
 
+  try {
+    const unitRef = doc(db, "courses", courseId, "units", unitId);
+    const snapshot = await getDoc(unitRef);
+    const unit = snapshot.data() as Unit;
+    return unit;
+  } catch (error) {
+    console.error("Error fetching units:", error);
+    throw error;
+  }
+}
+export async function getUnitsForCourse(courseId: string): Promise<Unit[]> {
   try {
     const unitsRef = collection(db, "courses", courseId, "units");
     const q = query(unitsRef, orderBy("order", "asc"));

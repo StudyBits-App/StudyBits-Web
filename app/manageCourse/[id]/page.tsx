@@ -4,16 +4,21 @@ import { useEffect, useState } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { CourseDisplay } from "@/components/course-display";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { IconPlus, IconTrash } from "@tabler/icons-react";
-import { useParams } from "next/navigation";
+import { IconPlus, IconQuestionMark, IconTrash } from "@tabler/icons-react";
+import { useParams, useRouter } from "next/navigation";
 import { Unit } from "@/utils/interfaces";
-import { getUnitsForCourse, saveUnit, deleteUnit } from "@/services/courseUnitData";
+import {
+  getUnitsForCourse,
+  saveUnit,
+  deleteUnit,
+} from "@/services/courseUnitData";
 import { Input } from "@/components/ui/input";
 import { v4 as uuidv4 } from "uuid";
 
 export default function ManageCoursePage() {
   const { id } = useParams();
   const [units, setUnits] = useState<Unit[]>([]);
+  const router  = useRouter();
 
   useEffect(() => {
     async function fetchUnits() {
@@ -81,7 +86,7 @@ export default function ManageCoursePage() {
               key={unit.key}
               className="bg-zinc-900 rounded-xl p-4 shadow-sm flex flex-col space-y-4"
             >
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
                 <Input
                   className="bg-zinc-900 text-white placeholder-zinc-400 border-zinc-600 flex-1"
                   value={unit.name}
@@ -97,6 +102,15 @@ export default function ManageCoursePage() {
                   title="Delete Unit"
                 >
                   <IconTrash />
+                </button>
+                <button
+                  onClick={() =>
+                    router.push(`/manageQuestions/${id}_${unit.key}`)
+                  }
+                  className="p-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg"
+                  title="Help / Info"
+                >
+                  <IconQuestionMark />
                 </button>
               </div>
 

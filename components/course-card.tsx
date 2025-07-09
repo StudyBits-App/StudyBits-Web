@@ -31,9 +31,9 @@ export function CourseCard({ courseId, link }: CourseCardProps) {
   if (!course) return <LoadingScreen />;
 
   return (
-    <Link href={`${link}/${course.key}`} className="block">
-      <Card className="w-64 aspect-square bg-zinc-900 hover:shadow-lg transition-shadow duration-200">
-        <CardContent className="h-full flex items-center p-4 space-x-4">
+    <Link href={`${link}/${course.key}`} className="block h-full">
+      <Card className="w-full h-full bg-zinc-900 hover:shadow-lg transition-shadow duration-200">
+        <CardContent className="h-full flex items-start p-4 space-x-4">
           {course.picUrl && (
             <div className="w-14 h-14 relative rounded-full overflow-hidden shrink-0">
               <Image

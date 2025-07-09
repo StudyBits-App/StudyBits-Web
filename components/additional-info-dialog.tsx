@@ -24,7 +24,7 @@ export function AdditionalInfoDialog({
   initialData?: Hint | null;
 }) {
   const [title, setTitle] = useState("");
-  const [image, setImage] = useState<File | null>(null);
+  const [image, setImage] = useState<File | null | string>(null);
   const [content, setContent] = useState("");
 
   useEffect(() => {
@@ -85,16 +85,28 @@ export function AdditionalInfoDialog({
               </label>
 
               {image && (
-                <>
-                  <p className="text-sm text-zinc-400 truncate">
-                    Selected: {image.name}
-                  </p>
+                <div className="space-y-2">
+                  {typeof image === "string" ? (
+                    <p className="text-sm text-zinc-400">Current: From upload </p>
+                  ) : (
+                    <p className="text-sm text-zinc-400">
+                      Selected:{" "}
+                      {image.name.length > 40
+                        ? image.name.slice(0, 40) + "..."
+                        : image.name}
+                    </p>
+                  )}
+
                   <img
-                    src={URL.createObjectURL(image)}
+                    src={
+                      typeof image === "string"
+                        ? image
+                        : URL.createObjectURL(image)
+                    }
                     alt="Preview"
                     className="mt-2 max-h-48 w-full object-contain border border-zinc-700 rounded-md"
                   />
-                </>
+                </div>
               )}
             </div>
           </div>

@@ -8,16 +8,8 @@ export interface Hint {
   key: string;
   title: string;
   content: string;
-  image: File | null;
+  image: File | null | string;
 }
-
-export interface HintUpload {
-  key: string;
-  title: string;
-  content: string;
-  image: string;
-}
-
 export interface Course {
   key: string;
   creator: string;
@@ -48,4 +40,25 @@ export interface Channel {
   bannerURL: string;
   profilePicURL: string;
   displayName: string;
+}
+
+export interface Question {
+  id: string;
+  question: string;
+  hints: Hint[];
+  answers: Answer[];
+  course: string;
+  unit: string;
+}
+
+export interface EditingQuestion {
+  id: string;
+  question: string;
+  hints: Hint[];
+  oldHints: Hint[];
+  answers: Answer[];
+  course: string;
+  unit: string;
+  oldCourse: string;
+  oldUnit: string
 }
