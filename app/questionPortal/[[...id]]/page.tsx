@@ -19,7 +19,7 @@ import {
   Hint,
   Unit,
 } from "@/utils/interfaces";
-import { AdditionalInfoDialog } from "@/components/additional-info-dialog";
+import { AdditionalInfoDialog } from "@/components/questionPortal/additional-info-dialog";
 import { useAuth } from "@/hooks/authContext";
 import {
   cacheCoursesAndUnits,
@@ -28,8 +28,8 @@ import {
   submitEditedQuestion,
   submitNewQuestion,
 } from "@/services/questionPortalHelpers";
-import { CourseDialog } from "@/components/course-unit-selector";
-import { FinalDialog } from "@/components/final-dialog";
+import { CourseDialog } from "@/components/questionPortal/course-unit-selector";
+import { FinalDialog } from "@/components/questionPortal/final-dialog";
 import { useParams, useRouter } from "next/navigation";
 import { getCourseData, getUnitForCourse } from "@/services/courseUnitData";
 

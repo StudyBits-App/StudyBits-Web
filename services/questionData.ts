@@ -19,7 +19,7 @@ export async function getQuestionsForCourseUnit(
         if (!questionSnap.exists()) return null;
 
         return {
-          ...questionSnap.data(),
+          ...questionSnap.data(), 
         } as Question;
       })
     );

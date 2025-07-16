@@ -10,6 +10,14 @@ export interface Hint {
   content: string;
   image: File | null | string;
 }
+
+export interface AnswerHint {
+  key: string;
+  title: string;
+  content: string;
+  image: string;
+}
+
 export interface Course {
   key: string;
   creator: string;
@@ -60,5 +68,33 @@ export interface EditingQuestion {
   course: string;
   unit: string;
   oldCourse: string;
-  oldUnit: string
+  oldUnit: string;
+}
+
+export interface QuestionInfo {
+  question: string;
+  hints: AnswerHint[];
+  answers: QuestionAnswer[];
+  course: string;
+}
+
+export interface QuestionAnswer {
+  key: string;
+  content: string;
+  answer: boolean;
+  isSelected: boolean;
+}
+
+export interface RawQuestionMetadata {
+  course_id: string;
+  course_name: string;
+  unit_name: string;
+  questions: string[];
+}
+
+export interface QuestionMetadata {
+  courseName: string;
+  unitName: string;
+  questionId: string;
+  courseId: string;
 }
