@@ -14,11 +14,15 @@ import {
 } from "@/services/courseUnitData";
 import { Input } from "@/components/ui/input";
 import { v4 as uuidv4 } from "uuid";
+import { Card, CardContent } from "@/components/ui/card";
+import { handleChannelCourseDelete } from "@/services/deleteData";
+import { useAuth } from "@/hooks/authContext";
 
 export default function ManageCoursePage() {
   const { id } = useParams();
+  const { user } = useAuth();
   const [units, setUnits] = useState<Unit[]>([]);
-  const router  = useRouter();
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchUnits() {
@@ -49,6 +53,11 @@ export default function ManageCoursePage() {
     setUnits((prev) => prev.filter((unit) => unit.key !== unitKey));
   };
 
+  const handleCourseDelete = async () => {
+    await handleChannelCourseDelete(id as string, user?.uid as string);
+    router.push("/");
+  };
+
   const handleAddUnit = () => {
     const newUnit: Unit = {
       key: uuidv4(),
@@ -71,6 +80,21 @@ export default function ManageCoursePage() {
       <AppSidebar variant="inset" />
       <SidebarInset className="p-6 space-y-6 bg-zinc-950 min-h-screen">
         <div className="max-w-6xl w-full mx-auto px-6 my-6 space-y-6">
+          <Card className="bg-zinc-900 border border-zinc-800">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <h1 className="text-lg font-semibold text-white">
+                  Course Details
+                </h1>
+
+                <IconTrash
+                  className="w-6 h-6 text-red-500 cursor-pointer"
+                  onClick={handleCourseDelete}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
           <CourseDisplay courseId={id as string} />
 
           <div className="bg-zinc-900 rounded-2xl shadow-md p-4 flex items-center justify-between">
