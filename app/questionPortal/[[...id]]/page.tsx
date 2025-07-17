@@ -28,7 +28,7 @@ import {
   submitEditedQuestion,
   submitNewQuestion,
 } from "@/services/questionPortalHelpers";
-import { CourseDialog } from "@/components/questionPortal/course-unit-selector";
+import { CourseDialog } from "@/components/course-unit-selector";
 import { FinalDialog } from "@/components/questionPortal/final-dialog";
 import { useParams, useRouter } from "next/navigation";
 import { getCourseData, getUnitForCourse } from "@/services/courseUnitData";

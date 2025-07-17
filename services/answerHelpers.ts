@@ -31,22 +31,6 @@ export const getQuestionInfoById = async (
   }
 };
 
-export const incrementUserAccuracy = async (uid: string) => {
-  try {
-    const userRef = doc(db, "learning", uid);
-    await setDoc(
-      userRef,
-      {
-        accuracy: increment(1),
-      },
-      { merge: true }
-    );
-  } catch (error) {
-    console.error("Error incrementing user accuracy:", error);
-    throw error;
-  }
-};
-
 export const checkIfLikeOrDislike = async (
   course: string,
   questionId: string,

@@ -10,11 +10,7 @@ import {
 import { useAuth } from "@/hooks/authContext";
 import { getCourseUnitNamesFromId } from "@/services/channelHelpers";
 import { shuffleArray } from "@/utils/utils";
-import {
-  getQuestionInfoById,
-  incrementUserAccuracy,
-  incrementViews,
-} from "@/services/answerHelpers";
+import { getQuestionInfoById, incrementViews } from "@/services/answerHelpers";
 import { AnswerBottomBar } from "@/components/answer/bottom-bar";
 import { AnswerHintCard } from "@/components/answer/renderHint";
 import { AnswerChoiceCard } from "@/components/answer/renderAnswer";
@@ -22,6 +18,7 @@ import LoadingScreen from "@/components/loading";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { createCourseUnitSelector } from "@/utils/getCombination";
+import { CourseDialog } from "@/components/course-unit-selector";
 
 const AnswerPage: React.FC = () => {
   const { user } = useAuth();
@@ -44,9 +41,17 @@ const AnswerPage: React.FC = () => {
     null
   );
   const [selectedUnitName, setSelectedUnitName] = useState<string | null>(null);
+  const [studyingCourse, setStudyingCourse] = useState<string | null>(null);
+  const [studiedUnit, setStudiedUnit] = useState<string>("");
+  const [courseOpen, setCourseOpen] = useState(false);
   const [selector, setSelector] = useState<Awaited<
     ReturnType<typeof createCourseUnitSelector>
   > | null>(null);
+
+  const onUnitSelect = (courseId: string, unitId: string) => {
+    setStudyingCourse(courseId);
+    setStudiedUnit(unitId);
+  };
 
   const fetchQuestions = useCallback(async () => {
     if (!selector) return;
@@ -57,7 +62,16 @@ const AnswerPage: React.FC = () => {
     setErrorMessage(null);
 
     try {
-      const response = await selector.fetchApiResponse();
+      let response = {};
+      if (studyingCourse) {
+        response = await selector.fetchApiResponseWithIds(
+          studyingCourse,
+          studiedUnit
+        );
+      } else {
+        response = await selector.fetchApiResponse();
+      }
+
       console.log("[fetchQuestions] API response:", response);
 
       if (!Array.isArray(response)) {
@@ -97,7 +111,7 @@ const AnswerPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [selector]);
+  }, [selector, studiedUnit, studyingCourse]);
 
   const fetchQuestionInfo = useCallback(
     async (id: string) => {
@@ -165,25 +179,6 @@ const AnswerPage: React.FC = () => {
     if (currentQuestionId) fetchQuestionInfo(currentQuestionId);
   }, [currentQuestionId, fetchQuestionInfo]);
 
-  useEffect(() => {
-    console.log("[answerChoices]", answerChoices);
-  }, [answerChoices]);
-
-  const updateUserAccuracy = async () => {
-    for (const answer of answerChoices) {
-      if (answer.isSelected && !answer.answer) return;
-    }
-
-    try {
-      if (user?.uid) {
-        await incrementUserAccuracy(user.uid);
-        console.log("[updateUserAccuracy] Incremented accuracy");
-      }
-    } catch (error) {
-      console.error("[updateUserAccuracy] Failed", error);
-    }
-  };
-
   const handleSubmitAnswers = () => {
     setAnswersSubmitted(true);
     console.log("[handleSubmitAnswers] Submitted");
@@ -195,8 +190,6 @@ const AnswerPage: React.FC = () => {
       );
       incrementViews(courseIdRef.current, currentQuestionId);
     }
-
-    updateUserAccuracy();
   };
 
   const toggleSelectedAnswer = (inputAnswer: QuestionAnswer) => {
@@ -208,6 +201,15 @@ const AnswerPage: React.FC = () => {
           : answer
       )
     );
+  };
+
+  const handleCourseUnitSelect = () => {
+    if (studyingCourse) {
+      setStudyingCourse(null);
+      setStudiedUnit("");
+    } else {
+      setCourseOpen(true);
+    }
   };
 
   if (loading) {
@@ -231,8 +233,40 @@ const AnswerPage: React.FC = () => {
             <p className="text-center text-sm">{errorMessage}</p>
           )}
 
-          {selectedCourseName && selectedUnitName && (
-            <div className="w-fit mx-auto px-4 py-2 rounded-lg bg-zinc-900">
+          {selectedCourseName && selectedUnitName && studyingCourse && (
+            <div
+              className="w-fit mx-auto px-4 py-2 rounded-lg bg-zinc-900"
+              onClick={handleCourseUnitSelect}
+            >
+              <p className="text-sm text-center font-outfit">
+                <span
+                  className="bg-clip-text text-transparent"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(to right, #f43f5e, #3b82f6)",
+                  }}
+                >
+                  {selectedCourseName}
+                </span>
+                <span className="mx-2 text-zinc-500">·</span>
+                <span
+                  className="bg-clip-text text-transparent"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(to right, #f43f5e, #3b82f6)",
+                  }}
+                >
+                  {selectedUnitName}
+                </span>
+              </p>
+            </div>
+          )}
+
+          {selectedCourseName && selectedUnitName && !studyingCourse && (
+            <div
+              className="w-fit mx-auto px-4 py-2 rounded-lg bg-zinc-900"
+              onClick={() => setCourseOpen(true)}
+            >
               <p className="text-sm text-zinc-300 text-center">
                 {selectedCourseName}{" "}
                 <span className="mx-2 text-zinc-500">·</span> {selectedUnitName}
@@ -292,6 +326,11 @@ const AnswerPage: React.FC = () => {
             unitName={unitName}
           />
         )}
+        <CourseDialog
+          open={courseOpen}
+          onOpenChange={setCourseOpen}
+          onUnitSelect={onUnitSelect}
+        />
       </SidebarInset>
     </SidebarProvider>
   );

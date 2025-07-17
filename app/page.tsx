@@ -22,6 +22,7 @@ export default function HomepPage() {
       try {
         const data = await getAllLearningCourseIds(user.uid);
         setLearningCourses(data);
+        console.log(data);
       } catch (error) {
         console.error("Failed to fetch channel data", error);
       }
@@ -75,13 +76,20 @@ export default function HomepPage() {
             </div>
           </CardContent>
         </Card>
-        {learningCourses && (
+        {learningCourses && learningCourses.length > 0 && (
           <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {learningCourses.map((courseId) => (
               <div key={courseId} className="h-full">
                 <CourseCard courseId={courseId} link={`/viewCourse`} />
               </div>
             ))}
+          </div>
+        )}
+        {learningCourses?.length === 0 && (
+          <div className="w-full rounded-xl border border-zinc-800 bg-zinc-900 p-6 text-center text-zinc-400">
+            <p className="text-sm">
+              You aren&apos;t learning any courses. Pick some to get started!
+            </p>
           </div>
         )}
       </SidebarInset>
