@@ -24,8 +24,10 @@ export const getCourseData = async (courseId: string): Promise<Course> => {
   }
 };
 
-export async function getUnitForCourse(courseId: string, unitId: string): Promise<Unit> {
-
+export async function getUnitForCourse(
+  courseId: string,
+  unitId: string
+): Promise<Unit> {
   try {
     const unitRef = doc(db, "courses", courseId, "units", unitId);
     const snapshot = await getDoc(unitRef);
@@ -54,12 +56,18 @@ export async function saveUnit(courseId: string, unit: Unit): Promise<void> {
   await setDoc(unitRef, unit, { merge: true });
 }
 
-export async function deleteUnit(courseId: string, unitId: string): Promise<void> {
+export async function deleteUnit(
+  courseId: string,
+  unitId: string
+): Promise<void> {
   const unitRef = doc(db, "courses", courseId, "units", unitId);
   await deleteDoc(unitRef);
 }
 
-export const createNewCourse = async (uid: string, course: Course): Promise<string> => {
+export const createNewCourse = async (
+  uid: string,
+  course: Course
+): Promise<string> => {
   try {
     course.lastModified = new Date().getTime();
     const courseRef = await addDoc(collection(db, "courses"), course);
@@ -75,5 +83,49 @@ export const createNewCourse = async (uid: string, course: Course): Promise<stri
   } catch (error) {
     console.error("Error in createNewCourse:", error);
     throw error;
+  }
+};
+
+export const getAllLearningCourseIds = async (
+  id: string
+): Promise<string[]> => {
+  try {
+    const collectionRef = collection(db, "learning", id, "courses");
+    const snapshot = await getDocs(collectionRef);
+
+    return snapshot.docs.map((doc) => doc.id);
+  } catch (error) {
+    console.error("Error fetching learning course IDs:", error);
+    return [];
+  }
+};
+
+export const fetchUnitsAndCourseCreator = async (id: string) => {
+  try {
+    const courseDoc = await getCourseData(id);
+    const creatorId = courseDoc?.creator;
+
+    const unitDocs = await getUnitsForCourse(id);
+    const unitData: Unit[] = [];
+
+    unitDocs.forEach((doc) => {
+      const unit = doc as Unit;
+      unitData.push(unit);
+    });
+
+    const sortedUnits = unitData.sort((a, b) => a.order - b.order);
+    return { creatorId, sortedUnits };
+  } catch (error) {
+    console.error("Error fetching units and course creator: ", error);
+  }
+};
+
+export const deleteLearning = async (id: string, courseId: string) => {
+  try {
+    const courseRef = doc(db, "learning", id, "courses", courseId);
+    await deleteDoc(courseRef);
+    console.log(`Successfully deleted course ${courseId} for user ${id}`);
+  } catch (error) {
+    console.error("Failed to delete learning course:", error);
   }
 };
