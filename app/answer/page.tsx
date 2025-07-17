@@ -98,7 +98,7 @@ const AnswerPage: React.FC = () => {
 
       const queue = shuffleArray(questions);
       if (queue.length === 0) {
-        setErrorMessage("No new questions available.");
+        setErrorMessage("No questions available.");
         return;
       }
 
@@ -203,13 +203,9 @@ const AnswerPage: React.FC = () => {
     );
   };
 
-  const handleCourseUnitSelect = () => {
-    if (studyingCourse) {
-      setStudyingCourse(null);
-      setStudiedUnit("");
-    } else {
-      setCourseOpen(true);
-    }
+  const handleCourseUnitReset = () => {
+    setStudyingCourse(null);
+    setStudiedUnit("");
   };
 
   if (loading) {
@@ -229,6 +225,12 @@ const AnswerPage: React.FC = () => {
 
       <SidebarInset className="px-8 py-10 space-y-10 bg-zinc-950 min-h-screen">
         <div className="space-y-6">
+          {!currentQuestionId && (
+            <p className="text-center text-sm">
+              Hmm... looks like you aren&apos;t studying anything. Go out and
+              explore!
+            </p>
+          )}
           {errorMessage && (
             <p className="text-center text-sm">{errorMessage}</p>
           )}
@@ -236,9 +238,9 @@ const AnswerPage: React.FC = () => {
           {selectedCourseName && selectedUnitName && studyingCourse && (
             <div
               className="w-fit mx-auto px-4 py-2 rounded-lg bg-zinc-900"
-              onClick={handleCourseUnitSelect}
+              onClick={() => setCourseOpen(true)}
             >
-              <p className="text-sm text-center font-outfit">
+              <p className="text-sm text-center font-outfit flex items-center gap-2">
                 <span
                   className="bg-clip-text text-transparent"
                   style={{
@@ -248,7 +250,7 @@ const AnswerPage: React.FC = () => {
                 >
                   {selectedCourseName}
                 </span>
-                <span className="mx-2 text-zinc-500">·</span>
+                <span className="text-zinc-500">·</span>
                 <span
                   className="bg-clip-text text-transparent"
                   style={{
@@ -257,6 +259,13 @@ const AnswerPage: React.FC = () => {
                   }}
                 >
                   {selectedUnitName}
+                </span>
+
+                <span
+                  className="text-zinc-400 hover:text-red-400 cursor-pointer text-lg"
+                  onClick={handleCourseUnitReset}
+                >
+                  x
                 </span>
               </p>
             </div>
@@ -286,37 +295,41 @@ const AnswerPage: React.FC = () => {
             ))}
           </div>
 
-          <div className="bg-zinc-900 rounded-xl p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {answerChoices.map((answer) => (
-                <AnswerChoiceCard
-                  key={answer.key}
-                  answer={answer}
-                  onSelect={toggleSelectedAnswer}
-                  disabled={answersSubmitted}
-                  submitted={answersSubmitted}
-                />
-              ))}
+          {currentQuestionId && (
+            <div className="bg-zinc-900 rounded-xl p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {answerChoices.map((answer) => (
+                  <AnswerChoiceCard
+                    key={answer.key}
+                    answer={answer}
+                    onSelect={toggleSelectedAnswer}
+                    disabled={answersSubmitted}
+                    submitted={answersSubmitted}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          <div className="flex justify-end pt-4 gap-3">
-            <button
-              className="bg-zinc-800 hover:bg-zinc-700 text-white px-4 h-12 rounded-xl flex items-center justify-center text-sm font-semibold transition border border-zinc-600"
-              onClick={nextQuestion}
-              title="Skip this question"
-            >
-              Skip
-            </button>
+          {currentQuestionId && (
+            <div className="flex justify-end pt-4 gap-3">
+              <button
+                className="bg-zinc-800 hover:bg-zinc-700 text-white px-4 h-12 rounded-xl flex items-center justify-center text-sm font-semibold transition border border-zinc-600"
+                onClick={nextQuestion}
+                title="Skip this question"
+              >
+                Skip
+              </button>
 
-            <button
-              className="bg-teal-600 hover:bg-teal-700 text-white px-4 h-12 rounded-xl flex items-center justify-center text-sm font-semibold transition"
-              onClick={answersSubmitted ? nextQuestion : handleSubmitAnswers}
-              title={answersSubmitted ? "Next Question" : "Check Answer"}
-            >
-              {answersSubmitted ? "Next Question" : "Check Answer"}
-            </button>
-          </div>
+              <button
+                className="bg-teal-600 hover:bg-teal-700 text-white px-4 h-12 rounded-xl flex items-center justify-center text-sm font-semibold transition"
+                onClick={answersSubmitted ? nextQuestion : handleSubmitAnswers}
+                title={answersSubmitted ? "Next Question" : "Check Answer"}
+              >
+                {answersSubmitted ? "Next Question" : "Check Answer"}
+              </button>
+            </div>
+          )}
         </div>
 
         {currentQuestionId && courseName && unitName && (
