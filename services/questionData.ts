@@ -1,5 +1,11 @@
 import { db } from "@/firebase/firebase";
-import { deleteDoc, doc, getDoc, increment, updateDoc } from "firebase/firestore";
+import {
+  deleteDoc,
+  doc,
+  getDoc,
+  increment,
+  updateDoc,
+} from "firebase/firestore";
 import { Question } from "@/utils/interfaces";
 
 export async function getQuestionsForCourseUnit(
@@ -29,6 +35,7 @@ export async function getQuestionsForCourseUnit(
     console.error("Error caching courses and units:", error);
   }
 }
+
 export const deleteQuestionFromUnit = async (
   courseId: string,
   unitId: string,

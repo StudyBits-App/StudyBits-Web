@@ -20,13 +20,11 @@ import { useRouter } from "next/navigation";
 export default function SigninPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
   const [displayError, setDisplayError] = useState("");
   const router = useRouter();
 
   const signInUsernamePassword = async () => {
     try {
-      setLoading(true);
       await signIn(username, password);
       router.push("/");
     } catch (error) {
@@ -36,20 +34,16 @@ export default function SigninPage() {
       } else {
         setDisplayError("Something went wrong.");
       }
-    } finally {
-      setLoading(false);
     }
   };
 
   const googleSignIn = async () => {
     try {
-      setLoading(true);
       await signInWithGoogle();
       router.push("/");
     } catch (error) {
       console.error(error);
     } finally {
-      setLoading(false);
     }
   };
 

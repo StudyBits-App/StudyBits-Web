@@ -20,9 +20,6 @@ export default function ChannelPage() {
       if (!user?.uid) return;
       try {
         const data = await getChannelData(user.uid);
-        if (data === null) {
-          router.replace("/createChannel");
-        }
         setChannel(data);
       } catch (error) {
         console.error("Failed to fetch channel data", error);

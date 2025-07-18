@@ -80,6 +80,7 @@ const AnswerPage: React.FC = () => {
 
       const [data, courseId, unitId] = response;
       const names = await getCourseUnitNamesFromId(courseId, unitId);
+      console.log(names);
       if (names) {
         setSelectedCourseName(names.courseName);
         setSelectedUnitName(names.unitName);
@@ -123,10 +124,7 @@ const AnswerPage: React.FC = () => {
       try {
         const data = await getQuestionInfoById(id);
         if (!data) return;
-        console.log(id);
-        console.log(questionsQueue);
         const meta = questionsQueue.find((q) => q.questionId === id);
-        console.log(meta);
         if (meta) {
           setCourseName(meta.courseName);
           setUnitName(meta.unitName);
@@ -235,7 +233,7 @@ const AnswerPage: React.FC = () => {
             <p className="text-center text-sm">{errorMessage}</p>
           )}
 
-          {selectedCourseName && selectedUnitName && studyingCourse && (
+          {selectedCourseName && studyingCourse && (
             <div
               className="w-fit mx-auto px-4 py-2 rounded-lg bg-zinc-900"
               onClick={() => setCourseOpen(true)}
@@ -250,35 +248,45 @@ const AnswerPage: React.FC = () => {
                 >
                   {selectedCourseName}
                 </span>
-                <span className="text-zinc-500">·</span>
-                <span
-                  className="bg-clip-text text-transparent"
-                  style={{
-                    backgroundImage:
-                      "linear-gradient(to right, #f43f5e, #3b82f6)",
-                  }}
-                >
-                  {selectedUnitName}
-                </span>
+
+                {selectedUnitName && (
+                  <>
+                    <span className="text-zinc-500">·</span>
+                    <span
+                      className="bg-clip-text text-transparent"
+                      style={{
+                        backgroundImage:
+                          "linear-gradient(to right, #f43f5e, #3b82f6)",
+                      }}
+                    >
+                      {selectedUnitName}
+                    </span>
+                  </>
+                )}
 
                 <span
                   className="text-zinc-400 hover:text-red-400 cursor-pointer text-lg"
                   onClick={handleCourseUnitReset}
                 >
-                  x
+                  ×
                 </span>
               </p>
             </div>
           )}
 
-          {selectedCourseName && selectedUnitName && !studyingCourse && (
+          {selectedCourseName && !studyingCourse && (
             <div
               className="w-fit mx-auto px-4 py-2 rounded-lg bg-zinc-900"
               onClick={() => setCourseOpen(true)}
             >
               <p className="text-sm text-zinc-300 text-center">
-                {selectedCourseName}{" "}
-                <span className="mx-2 text-zinc-500">·</span> {selectedUnitName}
+                {selectedCourseName}
+                {selectedUnitName && (
+                  <>
+                    <span className="mx-2 text-zinc-500">·</span>
+                    {selectedUnitName}
+                  </>
+                )}
               </p>
             </div>
           )}

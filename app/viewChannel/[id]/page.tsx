@@ -6,12 +6,13 @@ import { CourseCard } from "@/components/course-card";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { getChannelData } from "@/services/channelHelpers";
 import { Channel } from "@/utils/interfaces";
-import { useParams, useRouter } from "next/navigation";
+import { notFound, useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function ChannelPage() {
   const [channel, setChannel] = useState<Channel | null>(null);
   const router = useRouter();
+  const [notFoundError, setNotFoundError] = useState(false);
   const { id } = useParams();
 
   useEffect(() => {
@@ -19,7 +20,7 @@ export default function ChannelPage() {
       try {
         const data = await getChannelData(id as string);
         if (data === null) {
-          router.replace("/createChannel");
+          setNotFoundError(true);
         }
         setChannel(data);
       } catch (error) {
@@ -30,6 +31,10 @@ export default function ChannelPage() {
     fetchChannel();
   }, [id, router]);
 
+  if (notFoundError) {
+    notFound();
+  }
+  
   return (
     <SidebarProvider
       style={

@@ -11,7 +11,7 @@ export const getChannelData = async (
     const channelSnapshot = await getDoc(channelRef);
 
     if (!channelSnapshot.exists()) {
-      return null
+      return null;
     }
 
     return channelSnapshot.data() as Channel;
@@ -47,7 +47,9 @@ export const createOrUpdateChannel = async (
   }
 };
 
-export async function getChannelFromCourse(courseId: string): Promise<Channel | null> {
+export async function getChannelFromCourse(
+  courseId: string
+): Promise<Channel | null> {
   try {
     const courseDoc = await getCourseData(courseId);
     const id = courseDoc?.creator;
@@ -63,13 +65,19 @@ export async function getChannelFromCourse(courseId: string): Promise<Channel | 
   }
 }
 
-export async function getCourseUnitNamesFromId(courseId: string, unit_id: string) {
+export async function getCourseUnitNamesFromId(
+  courseId: string,
+  unit_id: string
+) {
   try {
     const courseDoc = await getCourseData(courseId);
     const courseName = courseDoc?.name;
     const id = courseDoc?.key;
-    const unitDoc = await getUnitForCourse(courseId, unit_id);
-    const unitName = unitDoc?.name;
+    let unitName = "";
+    if (unit_id) {
+      const unitDoc = await getUnitForCourse(courseId, unit_id);
+      unitName = unitDoc?.name;
+    }
     return { courseName, unitName, id };
   } catch (error) {
     console.error("Error fetching course and unit names: ", error);

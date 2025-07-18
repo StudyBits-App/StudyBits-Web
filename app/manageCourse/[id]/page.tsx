@@ -10,13 +10,13 @@ import { Unit } from "@/utils/interfaces";
 import {
   getUnitsForCourse,
   saveUnit,
-  deleteUnit,
 } from "@/services/courseUnitData";
 import { Input } from "@/components/ui/input";
 import { v4 as uuidv4 } from "uuid";
 import { Card, CardContent } from "@/components/ui/card";
-import { handleChannelCourseDelete } from "@/services/deleteData";
+import { deleteQuestionsForUnit, deleteUnit, handleChannelCourseDelete } from "@/services/deleteCourseUnitData";
 import { useAuth } from "@/hooks/authContext";
+import { getChannelData } from "@/services/channelHelpers";
 
 export default function ManageCoursePage() {
   const { id } = useParams();
@@ -25,14 +25,21 @@ export default function ManageCoursePage() {
   const router = useRouter();
 
   useEffect(() => {
+    async function verifyId() {
+      const channelData = await getChannelData(user?.uid as string);
+      const courseArray = channelData?.courses;
+      if (Array.isArray(courseArray) && !courseArray.includes(id as string))
+        router.push("/channel");
+    }
     async function fetchUnits() {
       if (id && typeof id === "string") {
         const data = await getUnitsForCourse(id);
         setUnits(data);
       }
     }
+    verifyId();
     fetchUnits();
-  }, [id]);
+  }, [id, router, user?.uid]);
 
   const updateUnitField = (key: string, field: keyof Unit, value: string) => {
     setUnits((prev) =>
@@ -49,7 +56,11 @@ export default function ManageCoursePage() {
 
   const handleDelete = async (unitKey: string) => {
     if (!id || typeof id !== "string") return;
+    alert("Warning: Deleting this unit will delete all of the questions associated with it.");
+    const confirmed = window.confirm("Do you really want to delete this unit?");
+    if (!confirmed) return;
     await deleteUnit(id, unitKey);
+    await deleteQuestionsForUnit(id, unitKey);
     setUnits((prev) => prev.filter((unit) => unit.key !== unitKey));
   };
 

@@ -23,6 +23,7 @@ export default function CreateCoursePage() {
         courseId,
         unitId
       );
+      console.log(fetchedQuestions);
       if (fetchedQuestions === undefined) router.replace("/channel");
       else setQuestions(fetchedQuestions);
     }

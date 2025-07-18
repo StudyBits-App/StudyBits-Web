@@ -3,7 +3,6 @@ import { Course, Unit } from "@/utils/interfaces";
 import {
   addDoc,
   collection,
-  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -56,14 +55,6 @@ export async function saveUnit(courseId: string, unit: Unit): Promise<void> {
   await setDoc(unitRef, unit, { merge: true });
 }
 
-export async function deleteUnit(
-  courseId: string,
-  unitId: string
-): Promise<void> {
-  const unitRef = doc(db, "courses", courseId, "units", unitId);
-  await deleteDoc(unitRef);
-}
-
 export const createNewCourse = async (
   uid: string,
   course: Course
@@ -105,6 +96,10 @@ export const fetchUnitsAndCourseCreator = async (id: string) => {
     const courseDoc = await getCourseData(id);
     const creatorId = courseDoc?.creator;
 
+    if(!creatorId) {
+      return undefined
+    }
+
     const unitDocs = await getUnitsForCourse(id);
     const unitData: Unit[] = [];
 
@@ -117,15 +112,5 @@ export const fetchUnitsAndCourseCreator = async (id: string) => {
     return { creatorId, sortedUnits };
   } catch (error) {
     console.error("Error fetching units and course creator: ", error);
-  }
-};
-
-export const deleteLearning = async (id: string, courseId: string) => {
-  try {
-    const courseRef = doc(db, "learning", id, "courses", courseId);
-    await deleteDoc(courseRef);
-    console.log(`Successfully deleted course ${courseId} for user ${id}`);
-  } catch (error) {
-    console.error("Failed to delete learning course:", error);
   }
 };

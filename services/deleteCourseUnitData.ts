@@ -83,3 +83,43 @@ export const handleChannelCourseDelete = async (courseId: string, uid: string) =
     await deleteUserChannelCourseDelete(courseId, uid);
     await handleUserCourseDeletion(courseId);
 };
+
+export const deleteQuestionsForUnit = async (
+  courseId: string,
+  unitId: string
+): Promise<void> => {
+  try {
+    const unitRef = doc(db, "courses", courseId, "units", unitId);
+    const unitDoc = await getDoc(unitRef);
+
+    if (unitDoc.exists()) {
+      const data = unitDoc.data();
+      await Promise.all(
+        data?.questions.map((questionId: string) =>
+          deleteDoc(doc(db, "questions", questionId))
+        )
+      );
+      console.log("Deleted questions successfully for unit");
+    }
+  } catch (error) {
+    console.error("Error deleting questions:", error);
+  }
+};
+
+export async function deleteUnit(
+  courseId: string,
+  unitId: string
+): Promise<void> {
+  const unitRef = doc(db, "courses", courseId, "units", unitId);
+  await deleteDoc(unitRef);
+}
+
+export const deleteLearning = async (id: string, courseId: string) => {
+  try {
+    const courseRef = doc(db, "learning", id, "courses", courseId);
+    await deleteDoc(courseRef);
+    console.log(`Successfully deleted course ${courseId} for user ${id}`);
+  } catch (error) {
+    console.error("Failed to delete learning course:", error);
+  }
+};

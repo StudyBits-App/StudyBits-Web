@@ -5,6 +5,7 @@ import "./globals.css";
 import React, { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { AuthProvider, useAuth } from "@/hooks/authContext";
+import { useUserChannel } from "@/hooks/channelContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,6 +19,7 @@ const geistMono = Geist_Mono({
 
 function AuthWrapper({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
+  const { hasChannel, channelLoading } = useUserChannel(user?.uid as string);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -30,6 +32,24 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     }
   }, [user, loading, pathname, router]);
 
+  useEffect(() => {
+    const channelOnly = [
+      "/channel",
+      "/createCourse",
+      "/manageCourse",
+      "/manageQuestions",
+      "/questionPortal",
+    ];
+
+    if (channelLoading) return;
+
+    const basePath = "/" + pathname.split("/")[1];
+
+    if (!hasChannel && channelOnly.includes(basePath)) {
+      router.push("/createChannel");
+    }
+  }, [pathname, router, channelLoading, hasChannel]);
+  
   if (loading) {
     return (
       <div style={{ textAlign: "center", marginTop: "50px" }}>

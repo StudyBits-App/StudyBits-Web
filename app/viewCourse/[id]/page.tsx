@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { notFound, useParams, useRouter } from "next/navigation";
 import { Channel, Unit } from "@/utils/interfaces";
 import {
   addCourseToUserLearning,
@@ -19,10 +19,7 @@ import { ViewCourseCard } from "@/components/view-course-card";
 import { ChannelDisplay } from "@/components/channel-display";
 import { useAuth } from "@/hooks/authContext";
 import SubscriberList from "@/components/subscriber-list";
-import {
-  deleteLearning,
-  fetchUnitsAndCourseCreator,
-} from "@/services/courseUnitData";
+import { fetchUnitsAndCourseCreator } from "@/services/courseUnitData";
 import { getChannelData } from "@/services/channelHelpers";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
@@ -33,6 +30,7 @@ import {
   IconTrash,
 } from "@tabler/icons-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { deleteLearning } from "@/services/deleteCourseUnitData";
 
 export default function ViewCoursesPage() {
   const { id } = useParams();
@@ -47,6 +45,7 @@ export default function ViewCoursesPage() {
   const [subscribedCourses, setSubscribedCourses] = useState<string[]>([]);
   const [subscribedTo, setSubscribedTo] = useState(false);
   const [channel, setChannel] = useState<Channel | null>(null);
+  const [notFoundError, setNotFoundError] = useState(false);
 
   useEffect(() => {
     const fetchCourseData = async () => {
@@ -59,6 +58,8 @@ export default function ViewCoursesPage() {
           setUnits(courseData.sortedUnits);
           const channel = await getChannelData(courseData.creatorId);
           if (channel) setChannel(channel);
+        } else {
+          setNotFoundError(true);
         }
 
         const { isStudied, useUnits, studyingUnits } =
@@ -127,6 +128,10 @@ export default function ViewCoursesPage() {
     }
   };
 
+  if (notFoundError) {
+    notFound();
+  }
+
   return (
     <SidebarProvider
       style={
@@ -161,7 +166,12 @@ export default function ViewCoursesPage() {
             </CardContent>
           </Card>
 
-          {courseCreatorId && channel && <ChannelDisplay channel={channel} />}
+          {courseCreatorId && channel && (
+            <div onClick={() => router.push(`/viewChannel/${courseCreatorId}`)}>
+              <ChannelDisplay channel={channel} />
+            </div>
+          )}
+
           <ViewCourseCard
             courseId={id as string}
             showSubscribeButton

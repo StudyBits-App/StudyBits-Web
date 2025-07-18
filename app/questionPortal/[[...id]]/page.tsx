@@ -22,7 +22,6 @@ import {
 import { AdditionalInfoDialog } from "@/components/questionPortal/additional-info-dialog";
 import { useAuth } from "@/hooks/authContext";
 import {
-  cacheCoursesAndUnits,
   convertHintsForUpload,
   getQuestionDataWithId,
   submitEditedQuestion,
@@ -56,34 +55,47 @@ export default function QuestionPortal() {
 
   useEffect(() => {
     const handleEditing = async () => {
-      if ((id !== "" || null) && typeof id === "string") {
+      if (!id || typeof id !== "string") return;
+
+      try {
         const questionData = await getQuestionDataWithId(id);
-        const questionHints = questionData?.hints;
-        const questionAnswers = questionData?.answers;
-        const question = questionData?.question;
-        const questionCourse = questionData?.course;
-        const questionUnit = questionData?.unit;
-        setAnswers(questionAnswers || []);
-        setHints(questionHints || []);
-        setOrigionalHints(questionHints || []);
-        setQuestion(question || "");
+        if (!questionData) throw new Error("No question data");
+
+        const questionCourse = questionData.course;
+        const questionUnit = questionData.unit;
+
+        let course: Course | null = null;
+        try {
+          course = await getCourseData(questionCourse);
+        } catch (err) {
+          console.error("Error loading course:", err);
+          router.push("/questionPortal");
+          return;
+        }
+
+        if (!course || course.creator !== user?.uid) {
+          router.push("/questionPortal");
+          return;
+        }
+
+        const unit = await getUnitForCourse(questionCourse, questionUnit);
+        if (!unit) throw new Error("No unit found");
+
+        setAnswers(questionData.answers || []);
+        setHints(questionData.hints || []);
+        setOrigionalHints(questionData.hints || []);
+        setQuestion(questionData.question || "");
         setOrigionalCourse(questionCourse || "");
         setOrigionalUnit(questionUnit || "");
-        const course = await getCourseData(questionCourse as string);
-        const unit = await getUnitForCourse(
-          questionCourse as string,
-          questionUnit as string
-        );
-        console.log(course);
-        console.log(unit);
         setSelectedCourse(course);
         setSelectedUnit(unit);
-        setQuestion(question || "");
+      } catch (error) {
+        console.error("handleEditing failed:", error);
+        router.push("/questionPortal");
       }
     };
     handleEditing();
-    cacheCoursesAndUnits(user?.uid as string);
-  }, [id, user]);
+  }, [id, router, user]);
 
   const handleHintSubmit = (hint: Hint) => {
     setHints((prev) => {
@@ -202,6 +214,11 @@ export default function QuestionPortal() {
         setTimeout(() => {
           router.push("/questionPortal");
         }, 500);
+      }
+      if (status === "error") {
+        alert(
+          "There was an error! Most likley, you are editing an invalid question."
+        );
       }
     }
   };
