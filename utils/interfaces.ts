@@ -25,6 +25,7 @@ export interface Course {
   name: string;
   description: string;
   lastModified: number;
+  numQuestions: number;
 }
 
 export const defaultCourse: Course = {
@@ -34,6 +35,7 @@ export const defaultCourse: Course = {
   name: "",
   description: "",
   lastModified: new Date().getTime(),
+  numQuestions: 0
 };
 
 export interface Unit {

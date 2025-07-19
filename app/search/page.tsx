@@ -61,7 +61,9 @@ export default function ResultsPage() {
                   key={id}
                   courseId={id}
                   link="/viewCourse"
-                  channel = {true}
+                  channel={true}
+                  cache={false}
+                  type={"view"}
                 />
               ))}
             </div>

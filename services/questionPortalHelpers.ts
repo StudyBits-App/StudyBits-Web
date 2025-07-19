@@ -1,10 +1,8 @@
 import { db } from "@/firebase/firebase";
 import {
-  Course,
   EditingQuestion,
   Hint,
   Question,
-  Unit,
 } from "@/utils/interfaces";
 import {
   addDoc,
@@ -13,50 +11,11 @@ import {
   collection,
   doc,
   getDoc,
-  getDocs,
   increment,
   setDoc,
   updateDoc,
 } from "firebase/firestore";
 import { deleteImageFromFirebase, uploadImageToFirebase } from "./handleImages";
-
-export async function cacheCoursesAndUnits(uid: string) {
-  localStorage.clear();
-  try {
-    const channelRef = doc(db, "channels", uid);
-    const snapshot = await getDoc(channelRef);
-    const data = snapshot.data();
-    const courses = data?.courses;
-
-    for (const courseEntry of courses) {
-      const courseId =
-        typeof courseEntry === "string" ? courseEntry : courseEntry?.id;
-
-      if (!courseId) continue;
-
-      const courseRef = doc(db, "courses", courseId);
-      const courseSnap = await getDoc(courseRef);
-
-      if (!courseSnap.exists()) continue;
-
-      const courseData = courseSnap.data() as Course;
-      localStorage.setItem(`course-${courseId}`, JSON.stringify(courseData));
-
-      const unitsRef = collection(db, "courses", courseId, "units");
-      const unitsSnap = await getDocs(unitsRef);
-
-      unitsSnap.forEach((unitDoc) => {
-        const unitData = unitDoc.data() as Unit;
-        const unitKey = `unit-${courseId}-${unitDoc.id}`;
-        if (unitData) {
-          localStorage.setItem(unitKey, JSON.stringify(unitData));
-        }
-      });
-    }
-  } catch (error) {
-    console.error("Error caching courses and units:", error);
-  }
-}
 
 export const convertHintsForUpload = async (hints: Hint[]): Promise<Hint[]> => {
   const uploadedHints: Hint[] = await Promise.all(

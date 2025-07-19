@@ -36,7 +36,7 @@ export const fetchCourseInteractionData = async (
 
     let useUnits = false;
     let studyingUnits: string[] = [];
-    const isStudied = courseSnap.exists()
+    const isStudied = courseSnap.exists();
 
     if (isStudied) {
       const courseRef = doc(db, "learning", uid, "courses", courseId);
@@ -103,22 +103,21 @@ export const toggleStudyingUnit = async (
 };
 
 export const getSubscribedCourses = async (
-  uid: string,
   courseId: string
 ): Promise<string[]> => {
   try {
-    const courseRef = doc(db, "learning", uid, "courses", courseId);
-    const docSnap = await getDoc(courseRef);
+    const mapStr = localStorage.getItem("subscriptions");
+    if (!mapStr) return [];
 
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      return data?.subscribedCourses || [];
-    } else {
-      console.warn("No subscribed courses found for this user.");
-      return [];
-    }
+    const map = JSON.parse(mapStr) as Record<string, string>;
+
+    const subscribedCourses = Object.entries(map)
+      .filter(([, base]) => base === courseId)
+      .map(([sub]) => sub);
+
+    return subscribedCourses;
   } catch (error) {
-    console.error("Error in getSubscribedCourses:", error);
-    throw error;
+    console.error("Error in getSubscribedCourses (cache version):", error);
+    return [];
   }
 };

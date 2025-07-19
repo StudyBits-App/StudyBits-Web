@@ -254,6 +254,7 @@ export default function QuestionPortal() {
             open={courseOpen}
             onOpenChange={setCourseOpen}
             onUnitSelect={handleUnitSelect}
+            type={"channel"}
           />
         </div>
 

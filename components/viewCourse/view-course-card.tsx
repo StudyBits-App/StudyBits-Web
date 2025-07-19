@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Course } from "@/utils/interfaces";
 import { getCourseData } from "@/services/courseUnitData";
-import LoadingScreen from "./loading";
+import LoadingScreen from "../loading";
 
 interface CourseCardProps {
   courseId: string;
@@ -72,8 +72,11 @@ export function ViewCourseCard({
           {showSubscribeButton && (
             <div className="ml-auto">
               <Button
-                variant="secondary"
-                className="text-xs px-3 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-700"
+                className={`text-xs px-3 py-1 rounded-lg border ${
+                  isSubscribed
+                    ? "bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700"
+                    : "bg-white text-black border-gray-300 hover:bg-gray-100"
+                }`}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();

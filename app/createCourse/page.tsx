@@ -8,7 +8,7 @@ import Image from "next/image";
 import { Course, defaultCourse } from "@/utils/interfaces";
 import { useAuth } from "@/hooks/authContext";
 import { uploadImageToFirebase } from "@/services/handleImages";
-import { v4 as uuidv4 } from "uuid";
+import { v4 as uuidv4, v4 } from "uuid";
 import { createNewCourse } from "@/services/courseUnitData";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
@@ -40,11 +40,20 @@ export default function CreateCoursePage() {
         const uploadedUrl = await uploadImageToFirebase(file, "coursePics");
         course.picUrl = uploadedUrl;
       }
+      const id = v4();
+      console.log(id);
+      const uploadedCourse = await createNewCourse(
+        user?.uid as string,
+        course,
+        id
+      );
+      console.log(uploadedCourse);
 
-      if (user?.uid) {
-        const courseId = await createNewCourse(user.uid, course);
-        router.push(`/manageCourse/${courseId}`);
-      }
+      localStorage.setItem(
+        `channel-course-${id}`,
+        JSON.stringify(uploadedCourse)
+      );
+      router.push(`/manageCourse/${id}`);
     } catch (error) {
       console.error("Error creating course:", error);
     }
@@ -65,7 +74,6 @@ export default function CreateCoursePage() {
           <h1 className="text-white text-2xl font-bold">Create a Course</h1>
 
           <div className="space-y-4 bg-zinc-900 rounded-xl p-6">
-
             <div className="flex items-center space-x-4">
               {course.picUrl ? (
                 <Image

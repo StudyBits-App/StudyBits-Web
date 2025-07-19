@@ -11,14 +11,15 @@ import {
   updateUseUnitsPreference,
 } from "@/services/viewCourseHelpers";
 import {
+  checkIfSubscribed,
   subscribeToCourse,
   unsubscribeFromCourse,
 } from "@/services/answerHelpers";
 import { Switch } from "@/components/ui/switch";
-import { ViewCourseCard } from "@/components/view-course-card";
+import { ViewCourseCard } from "@/components/viewCourse/view-course-card";
 import { ChannelDisplay } from "@/components/channel-display";
 import { useAuth } from "@/hooks/authContext";
-import SubscriberList from "@/components/subscriber-list";
+import SubscriberList from "@/components/viewCourse/subscriber-list";
 import { fetchUnitsAndCourseCreator } from "@/services/courseUnitData";
 import { getChannelData } from "@/services/channelHelpers";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -31,6 +32,7 @@ import {
 } from "@tabler/icons-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { deleteLearning } from "@/services/deleteCourseUnitData";
+import { CourseDialog } from "@/components/course-unit-selector";
 
 export default function ViewCoursesPage() {
   const { id } = useParams();
@@ -46,6 +48,7 @@ export default function ViewCoursesPage() {
   const [subscribedTo, setSubscribedTo] = useState(false);
   const [channel, setChannel] = useState<Channel | null>(null);
   const [notFoundError, setNotFoundError] = useState(false);
+  const [courseOpen, setCourseOpen] = useState(false);
 
   useEffect(() => {
     const fetchCourseData = async () => {
@@ -69,11 +72,11 @@ export default function ViewCoursesPage() {
         setIsSwitchOn(useUnits);
         setStudyingUnits(studyingUnits);
 
-        if (isStudied) {
-          const subCourses = await getSubscribedCourses(user.uid, id);
-          setSubscribedCourses(subCourses);
-          if (subCourses.includes(id)) setSubscribedTo(true);
-        }
+        const subCourses = await getSubscribedCourses(id);
+        setSubscribedCourses(subCourses);
+
+        const isSub = await checkIfSubscribed(id);
+        setSubscribedTo(isSub);
       } catch (err) {
         console.error("Error loading course:", err);
       }
@@ -120,17 +123,36 @@ export default function ViewCoursesPage() {
     if (!user?.uid || typeof id !== "string") return;
 
     if (subscribedTo) {
-      await unsubscribeFromCourse(id, user.uid);
-      setSubscribedTo(false);
+      if (studiedCourse) {
+        await unsubscribeFromCourse(id, id, user.uid);
+        setSubscribedTo(false);
+      } else {
+        const mapStr = localStorage.getItem(`subscriptions`);
+        if (mapStr) {
+          const map = JSON.parse(mapStr) as Record<string, string>;
+          console.log(map[id])
+          await unsubscribeFromCourse(id, map[id], user?.uid);
+          setSubscribedTo(false);
+        }
+      }
     } else {
-      await subscribeToCourse(id, user.uid);
-      setSubscribedTo(true);
+      if (studiedCourse) {
+        await subscribeToCourse(id, id, user.uid);
+        setSubscribedTo(true);
+      } else {
+        setCourseOpen(true);
+      }
     }
   };
 
   if (notFoundError) {
     notFound();
   }
+
+  const handleCourseSelect = async (courseId: string) => {
+    await subscribeToCourse(id as string, courseId, user?.uid as string);
+    setSubscribedTo(true);
+  };
 
   return (
     <SidebarProvider
@@ -240,6 +262,15 @@ export default function ViewCoursesPage() {
               </h2>
               <SubscriberList ids={subscribedCourses} link="/viewCourse" />
             </div>
+          )}
+          {courseCreatorId && (
+            <CourseDialog
+              open={courseOpen}
+              onOpenChange={setCourseOpen}
+              onUnitSelect={handleCourseSelect}
+              courseOnly={true}
+              type={"learning"}
+            />
           )}
         </div>
       </SidebarInset>

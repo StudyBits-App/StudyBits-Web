@@ -41,6 +41,7 @@ const AnswerPage: React.FC = () => {
     null
   );
   const [selectedUnitName, setSelectedUnitName] = useState<string | null>(null);
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null); 
   const [studyingCourse, setStudyingCourse] = useState<string | null>(null);
   const [studiedUnit, setStudiedUnit] = useState<string>("");
   const [courseOpen, setCourseOpen] = useState(false);
@@ -79,6 +80,7 @@ const AnswerPage: React.FC = () => {
       }
 
       const [data, courseId, unitId] = response;
+      setSelectedCourseId(courseId);
       const names = await getCourseUnitNamesFromId(courseId, unitId);
       console.log(names);
       if (names) {
@@ -340,17 +342,19 @@ const AnswerPage: React.FC = () => {
           )}
         </div>
 
-        {currentQuestionId && courseName && unitName && (
+        {currentQuestionId && courseName && unitName && selectedCourseId && (
           <AnswerBottomBar
             questionId={currentQuestionId}
             courseName={courseName}
             unitName={unitName}
+            selectedCourseId={selectedCourseId}
           />
         )}
         <CourseDialog
           open={courseOpen}
           onOpenChange={setCourseOpen}
           onUnitSelect={onUnitSelect}
+          type={"learning"}
         />
       </SidebarInset>
     </SidebarProvider>

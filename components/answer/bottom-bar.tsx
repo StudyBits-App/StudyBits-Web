@@ -26,12 +26,14 @@ interface AnswerBottomBarProps {
   questionId: string;
   courseName: string;
   unitName: string;
+  selectedCourseId: string;
 }
 
 export function AnswerBottomBar({
   questionId,
   courseName,
   unitName,
+  selectedCourseId,
 }: AnswerBottomBarProps) {
   const { user } = useAuth();
 
@@ -52,7 +54,7 @@ export function AnswerBottomBar({
         const [likeOrDislike, isSubscribed, likes, dislikes, views] =
           await Promise.all([
             checkIfLikeOrDislike(courseId, questionId, user.uid),
-            checkIfSubscribed(courseId, user.uid),
+            checkIfSubscribed(courseId),
             getLikes(questionId),
             getDislikes(questionId),
             getViews(questionId),
@@ -146,10 +148,15 @@ export function AnswerBottomBar({
 
     try {
       if (subscribed) {
-        await unsubscribeFromCourse(courseId, user.uid);
-        setSubscribed(false);
+        const mapStr = localStorage.getItem("subscriptions");
+        if (mapStr) {
+          const map = JSON.parse(mapStr) as Record<string, string>;
+          const baseCourseId = map[courseId];
+          await unsubscribeFromCourse(courseId, baseCourseId, user.uid);
+          setSubscribed(false);
+        }
       } else {
-        await subscribeToCourse(courseId, user.uid);
+        await subscribeToCourse(courseId, selectedCourseId, user.uid);
         setSubscribed(true);
       }
     } catch (err) {
@@ -198,15 +205,17 @@ export function AnswerBottomBar({
 
       <div className="min-w-[100px]">
         <Button
-          variant={subscribed ? "secondary" : "outline"}
-          size="sm"
-          className={subscribed ? "border-cyan-500 text-cyan-300" : ""}
+          className={`text-xs px-3 py-1 rounded-lg border ${
+            subscribed
+              ? "bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700"
+              : "bg-white text-black border-gray-300 hover:bg-gray-100"
+          }`}
           onClick={handleSubscribe}
         >
           {subscribed ? "Subscribed" : "Subscribe"}
         </Button>
       </div>
-
+      
       <div className="flex items-center gap-1 text-zinc-400 min-w-[80px] justify-end">
         <IconPencil size={30} className="text-zinc-500" />
         <span>{formatCount(viewCount)}</span>

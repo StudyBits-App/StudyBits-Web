@@ -175,31 +175,43 @@ export const removeLikeOrDislike = async (
 };
 
 export const checkIfSubscribed = async (
-  course: string,
-  uid: string
+  course: string
 ): Promise<boolean> => {
   try {
-    const userDoc = doc(db, "learning", uid, "courses", course);
-    const userSnapshot = await getDoc(userDoc);
-    if (!userSnapshot.exists()) return false;
+    const mapStr = localStorage.getItem("subscriptions");
+    if (!mapStr) return false;
 
-    const subscribedCourses = userSnapshot.data()?.subscribedCourses || [];
-    return subscribedCourses.includes(course);
+    const map = JSON.parse(mapStr) as Record<string, string>;
+    return course in map;
   } catch (error) {
     console.error("Error checking subscription status:", error);
-    throw error;
+    return false;
   }
 };
 
+
 export const subscribeToCourse = async (
   course: string,
+  baseCourse: string,
   uid: string
 ): Promise<void> => {
   try {
-    const userDoc = doc(db, "learning", uid, "courses", course);
+    const userDoc = doc(db, "learning", uid, "courses", baseCourse);
     await updateDoc(userDoc, {
       subscribedCourses: arrayUnion(course),
     });
+
+    const courseDoc = doc(db, "courses", course);
+    await updateDoc(courseDoc, {
+      numSubscribers: increment(1),
+    });
+
+
+    const mapStr = localStorage.getItem("subscriptions");
+    const map: Record<string, string> = mapStr ? JSON.parse(mapStr) : {};
+    map[course] = baseCourse;
+
+    localStorage.setItem("subscriptions", JSON.stringify(map));
   } catch (error) {
     console.error("Error subscribing to course:", error);
     throw error;
@@ -208,13 +220,25 @@ export const subscribeToCourse = async (
 
 export const unsubscribeFromCourse = async (
   course: string,
+  baseCourse: string,
   uid: string
 ): Promise<void> => {
   try {
-    const userDoc = doc(db, "learning", uid, "courses", course);
+    const userDoc = doc(db, "learning", uid, "courses", baseCourse);
     await updateDoc(userDoc, {
       subscribedCourses: arrayRemove(course),
     });
+
+    const courseDoc = doc(db, "courses", course);
+    await updateDoc(courseDoc, {
+      numSubscribers: increment(-1),
+    });
+
+    const mapStr = localStorage.getItem("subscriptions");
+    const map: Record<string, string> = mapStr ? JSON.parse(mapStr) : {};
+    delete map[course];
+
+    localStorage.setItem("subscriptions", JSON.stringify(map));
   } catch (error) {
     console.error("Error unsubscribing from course:", error);
     throw error;
@@ -254,4 +278,3 @@ export const incrementViews = async (
     throw error;
   }
 };
-

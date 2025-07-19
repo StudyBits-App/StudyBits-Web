@@ -53,7 +53,7 @@ export default function ChannelPage() {
               <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                 {channel.courses.map((courseId) => (
                   <div key={courseId} className="h-full">
-                    <CourseCard courseId={courseId} link="/viewCourse" />
+                    <CourseCard courseId={courseId} link="/viewCourse" cache={false}/>
                   </div>
                 ))}
               </div>

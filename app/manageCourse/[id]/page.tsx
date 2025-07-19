@@ -7,22 +7,25 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { IconPlus, IconQuestionMark, IconTrash } from "@tabler/icons-react";
 import { useParams, useRouter } from "next/navigation";
 import { Unit } from "@/utils/interfaces";
-import {
-  getUnitsForCourse,
-  saveUnit,
-} from "@/services/courseUnitData";
+import { getUnitsForCourse, saveUnit } from "@/services/courseUnitData";
 import { Input } from "@/components/ui/input";
 import { v4 as uuidv4 } from "uuid";
 import { Card, CardContent } from "@/components/ui/card";
-import { deleteQuestionsForUnit, deleteUnit, handleChannelCourseDelete } from "@/services/deleteCourseUnitData";
+import {
+  deleteQuestionsForUnit,
+  deleteUnit,
+  handleChannelCourseDelete,
+} from "@/services/deleteCourseUnitData";
 import { useAuth } from "@/hooks/authContext";
 import { getChannelData } from "@/services/channelHelpers";
+import { cacheCoursesAndUnits } from "@/services/cacheServices";
 
 export default function ManageCoursePage() {
   const { id } = useParams();
   const { user } = useAuth();
   const [units, setUnits] = useState<Unit[]>([]);
   const router = useRouter();
+  const STORAGE_PREFIX = `channel-unit-${id}-`;
 
   useEffect(() => {
     async function verifyId() {
@@ -32,14 +35,37 @@ export default function ManageCoursePage() {
         router.push("/channel");
     }
     async function fetchUnits() {
-      if (id && typeof id === "string") {
+      if (!id || typeof id !== "string") return;
+
+      const units: Unit[] = [];
+
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key?.startsWith(STORAGE_PREFIX)) {
+          const item = localStorage.getItem(key);
+          if (item) {
+            try {
+              const unit = JSON.parse(item) as Unit;
+              units.push(unit);
+            } catch {
+              console.warn("Invalid cached unit:", key);
+            }
+          }
+        }
+      }
+
+      if (units.length > 0) {
+        setUnits(units);
+      } else {
         const data = await getUnitsForCourse(id);
         setUnits(data);
       }
     }
+
     verifyId();
     fetchUnits();
-  }, [id, router, user?.uid]);
+  }, [STORAGE_PREFIX, id, router, user?.uid]);
+
 
   const updateUnitField = (key: string, field: keyof Unit, value: string) => {
     setUnits((prev) =>
@@ -52,20 +78,27 @@ export default function ManageCoursePage() {
   const handleSave = async (unit: Unit) => {
     if (!id || typeof id !== "string") return;
     await saveUnit(id, unit);
+    localStorage.setItem(`${STORAGE_PREFIX}${unit.key}`, JSON.stringify(unit));
   };
 
   const handleDelete = async (unitKey: string) => {
     if (!id || typeof id !== "string") return;
-    alert("Warning: Deleting this unit will delete all of the questions associated with it.");
+
+    alert(
+      "Warning: Deleting this unit will delete all of the questions associated with it."
+    );
     const confirmed = window.confirm("Do you really want to delete this unit?");
     if (!confirmed) return;
+
     await deleteUnit(id, unitKey);
     await deleteQuestionsForUnit(id, unitKey);
     setUnits((prev) => prev.filter((unit) => unit.key !== unitKey));
+    localStorage.removeItem(`${STORAGE_PREFIX}${unitKey}`);
   };
 
   const handleCourseDelete = async () => {
     await handleChannelCourseDelete(id as string, user?.uid as string);
+    await cacheCoursesAndUnits(user?.uid as string);
     router.push("/");
   };
 
@@ -77,6 +110,10 @@ export default function ManageCoursePage() {
       order: units.length,
     };
     setUnits((prev) => [...prev, newUnit]);
+    localStorage.setItem(
+      `${STORAGE_PREFIX}${newUnit.key}`,
+      JSON.stringify(newUnit)
+    );
   };
 
   return (
@@ -106,7 +143,7 @@ export default function ManageCoursePage() {
             </CardContent>
           </Card>
 
-          <CourseDisplay courseId={id as string} />
+          <CourseDisplay courseId={id as string} cache={true} />
 
           <div className="bg-zinc-900 rounded-2xl shadow-md p-4 flex items-center justify-between">
             <h1 className="text-xl font-semibold text-white">Units</h1>

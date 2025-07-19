@@ -9,23 +9,42 @@ import LoadingScreen from "./loading";
 
 interface CourseDisplayProps {
   courseId: string;
+  cache: boolean;
 }
 
-export function CourseDisplay({ courseId }: CourseDisplayProps) {
+export function CourseDisplay({ courseId, cache }: CourseDisplayProps) {
   const [course, setCourse] = useState<Course | null>(null);
 
   useEffect(() => {
     async function fetchCourse() {
       try {
-        const data = await getCourseData(courseId);
-        setCourse(data);
+        let data: Course | null = null;
+
+        if (cache) {
+          const cached = localStorage.getItem(`channel-course-${courseId}`);
+          if (cached) {
+            try {
+              data = JSON.parse(cached);
+              setCourse(data);
+            } catch {
+              console.warn(
+                "Invalid cached course data, falling back to fetch."
+              );
+            }
+          }
+        }
+
+        if (!data) {
+          data = await getCourseData(courseId);
+          setCourse(data);
+        }
       } catch (err) {
         console.error("Failed to fetch course:", err);
       }
     }
 
     fetchCourse();
-  }, [courseId]);
+  }, [courseId, cache]);
 
   if (!course) return <LoadingScreen />;
 
