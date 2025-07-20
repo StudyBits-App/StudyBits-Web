@@ -62,6 +62,14 @@ export default function ChannelPage() {
             )}
           </>
         )}
+        <div className="w-full mt-10 bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex justify-center">
+          <button
+            onClick={() => router.push("/manageQuestions")}
+            className="text-white px-6 py-2 rounded-lg font-medium hover:bg-zinc-700 transition"
+          >
+            Manage Questions
+          </button>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

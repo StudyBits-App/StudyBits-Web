@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { CourseDisplay } from "@/components/course-display";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { IconPlus, IconQuestionMark, IconTrash } from "@tabler/icons-react";
+import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { useParams, useRouter } from "next/navigation";
 import { Unit } from "@/utils/interfaces";
 import { getUnitsForCourse, saveUnit } from "@/services/courseUnitData";
@@ -174,15 +174,6 @@ export default function ManageCoursePage() {
                   title="Delete Unit"
                 >
                   <IconTrash />
-                </button>
-                <button
-                  onClick={() =>
-                    router.push(`/manageQuestions/${id}_${unit.key}`)
-                  }
-                  className="p-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg"
-                  title="Help / Info"
-                >
-                  <IconQuestionMark />
                 </button>
               </div>
 

@@ -63,7 +63,6 @@ export default function ResultsPage() {
                   link="/viewCourse"
                   channel={true}
                   cache={false}
-                  type={"view"}
                 />
               ))}
             </div>
