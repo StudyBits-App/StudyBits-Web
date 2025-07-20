@@ -73,6 +73,15 @@ export interface EditingQuestion {
   oldUnit: string;
 }
 
+export interface DraftQuestion {
+  id: string;
+  question: string | "";
+  hints: Hint[] | [];
+  answers: Answer[] | [];
+  course: string;
+  unit: string;
+}
+
 export interface QuestionInfo {
   question: string;
   hints: AnswerHint[];

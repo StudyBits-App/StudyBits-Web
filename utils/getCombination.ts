@@ -72,6 +72,7 @@ export async function createCourseUnitSelector(uid: string) {
         {
           course_id: combo.courseId,
           unit_id: combo.unitId,
+          uid: uid
         }
       );
 
