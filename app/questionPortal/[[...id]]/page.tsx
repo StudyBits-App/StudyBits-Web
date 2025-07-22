@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -22,6 +21,7 @@ import {
 import { AdditionalInfoDialog } from "@/components/questionPortal/additional-info-dialog";
 import { useAuth } from "@/hooks/authContext";
 import {
+  addTagsToQuestion,
   convertHintsForUpload,
   draftToPublish,
   editDraft,
@@ -36,6 +36,8 @@ import { CourseDialog } from "@/components/course-unit-selector";
 import { FinalDialog } from "@/components/questionPortal/final-dialog";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { getCourseData, getUnitForCourse } from "@/services/courseUnitData";
+import { cacheCoursesAndUnits } from "@/services/cacheServices";
+import { classifyQuestion } from "@/utils/classify";
 
 export default function QuestionPortal() {
   const [id, setId] = useState("");
@@ -112,7 +114,7 @@ export default function QuestionPortal() {
         setQuestion(questionData.question || "");
         setOrigionalCourse(questionCourse || "");
         setOrigionalUnit(questionUnit || "");
-        setSelectedCourse(course);
+        setSelectedCourse(course || null);
         setSelectedUnit(unit);
       } catch (error) {
         console.error("handleEditing failed:", error);
@@ -121,6 +123,10 @@ export default function QuestionPortal() {
     };
     handleEditing();
   }, [id, questionType, router, user]);
+
+  useEffect(() => {
+    cacheCoursesAndUnits(user?.uid as string);
+  }, [user?.uid, id]);
 
   const handleHintSubmit = (hint: Hint) => {
     setHints((prev) => {
@@ -170,39 +176,16 @@ export default function QuestionPortal() {
     setHints((prev) => prev.filter((hint) => hint.key !== key));
   };
 
-  const handleUnitSelect = (courseId: string, unitId: string) => {
-    const courseData = localStorage.getItem(`course-${courseId}`);
-    const unitData = localStorage.getItem(`unit-${courseId}-${unitId}`);
-
-    if (courseData) {
-      try {
-        const parsedCourse: Course = JSON.parse(courseData);
-        setSelectedCourse(parsedCourse);
-      } catch (e) {
-        console.error("Failed to parse course:", e);
-      }
-    } else {
-      console.warn(`No course found in localStorage for course-${courseId}`);
-    }
-
-    if (unitData) {
-      try {
-        const parsedUnit: Unit = JSON.parse(unitData);
-        setSelectedUnit(parsedUnit);
-      } catch (e) {
-        console.error("Failed to parse unit:", e);
-      }
-    } else {
-      console.warn(
-        `No unit found in localStorage for unit-${courseId}-${unitId}`
-      );
-    }
+  const handleUnitSelect = (course: Course, unit: Unit | null) => {
+    if (!unit) return;
+    setSelectedCourse(course);
+    setSelectedUnit(unit);
   };
 
   const handleSubmit = async () => {
     const hasCorrectAnswer = answers.some((answer) => answer.answer);
     if (!question.trim() || answers.length < 2 || !hasCorrectAnswer) return;
-    let status = "";
+    let status: "error" | { status: "success"; id: string } = "error";
     if (selectedCourse && selectedUnit) {
       if (id === "") {
         const fullHints = await convertHintsForUpload(hints);
@@ -229,13 +212,20 @@ export default function QuestionPortal() {
         status = await submitEditedQuestion(editingQuestion);
       }
 
-      if (status === "success") {
-        setFinal(true);
-      }
       if (status === "error") {
         alert(
           "There was an error! Most likley, you are editing an invalid question."
         );
+      } else {
+        const tags = await classifyQuestion(status.id);
+        if ("tags" in tags && tags.tags.length > 0) {
+          addTagsToQuestion(status.id, tags.tags);
+          setFinal(true);
+        } else {
+          alert(
+            "Your question was saved, but there wasn an error! Save it again."
+          );
+        }
       }
     }
   };
@@ -293,8 +283,16 @@ export default function QuestionPortal() {
       alert("Save all changes as a draft before proceeding.");
       const confirmed = window.confirm("Do you want to proceed?");
       if (!confirmed) return;
-      draftToPublish(id, selectedCourse?.key, selectedUnit.key);
-      router.push(`/questionPortal/publish/${id}`);
+      await draftToPublish(id, selectedCourse.key, selectedUnit.key);
+      const tags = await classifyQuestion(id);
+      if ("tags" in tags && tags.tags.length > 0) {
+        addTagsToQuestion(id, tags.tags);
+        router.push(`/questionPortal/publish/${id}`);
+      } else {
+        alert(
+          "Your question was saved, but there wasn an error! Save it again."
+        );
+      }
     }
   };
 
@@ -303,12 +301,12 @@ export default function QuestionPortal() {
       alert("Publish all changes before proceeding.");
       const confirmed = window.confirm("Do you want to proceed?");
       if (!confirmed) return;
-      publishToDraft(id, selectedCourse?.key, selectedUnit.key);
+      publishToDraft(id, selectedCourse.key, selectedUnit.key);
       router.push(`/questionPortal/draft/${id}`);
     }
   };
 
-  if(error) {
+  if (error) {
     notFound();
   }
 
@@ -324,7 +322,9 @@ export default function QuestionPortal() {
       <AppSidebar variant="inset" />
       <SidebarInset className="p-6 space-y-4 bg-zinc-950 min-h-screen">
         <div
-          className={"inline-block px-3 py-1 rounded-md text-sm font-medium bg-zinc-800 text-zinc-300"}
+          className={
+            "inline-block px-3 py-1 rounded-md text-sm font-medium bg-zinc-800 text-zinc-300"
+          }
         >
           {questionType === "publish"
             ? "Published"
@@ -354,18 +354,12 @@ export default function QuestionPortal() {
             onOpenChange={setCourseOpen}
             onUnitSelect={handleUnitSelect}
             type={"channel"}
+            cache={true}
           />
         </div>
 
         {selectedCourse && selectedUnit && (
           <div className="flex items-center gap-4 bg-zinc-900 p-3 rounded-md border border-zinc-700">
-            {selectedCourse.picUrl && (
-              <img
-                src={selectedCourse.picUrl}
-                alt={selectedCourse.name}
-                className="h-12 w-12 rounded-full object-cover border border-zinc-600"
-              />
-            )}
             <div>
               <p className="text-lg font-semibold text-white">
                 {selectedCourse.name}
@@ -412,6 +406,7 @@ export default function QuestionPortal() {
             )}
 
             {hint.image && (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={
                   typeof hint.image === "string"
@@ -422,7 +417,6 @@ export default function QuestionPortal() {
                 className="w-full max-h-64 object-contain rounded-md border border-zinc-700"
               />
             )}
-
             {hint.content && (
               <p className="text-sm text-zinc-300">{hint.content}</p>
             )}

@@ -49,15 +49,28 @@ export async function getUnitsForCourse(courseId: string): Promise<Unit[]> {
   }
 }
 
-export async function saveUnit(courseId: string, unit: Unit): Promise<void> {
+export async function saveUnit(
+  courseId: string,
+  unit: Unit,
+  tags: string[]
+): Promise<void> {
   const unitRef = doc(db, "courses", courseId, "units", unit.key);
-  await setDoc(unitRef, unit, { merge: true });
+
+  await setDoc(
+    unitRef,
+    {
+      ...unit,
+      tags,
+    },
+    { merge: true }
+  );
 }
 
 export const createNewCourse = async (
   uid: string,
   course: Course,
-  id: string
+  id: string,
+  tags: string[]
 ): Promise<Course> => {
   try {
     const courseRef = doc(db, "courses", id);
@@ -69,6 +82,7 @@ export const createNewCourse = async (
       lastModified: timestamp,
       numQuestions: 0,
       creator: uid,
+      tags: tags
     };
 
     await setDoc(courseRef, courseWithMeta);
@@ -158,6 +172,45 @@ export async function fetchLearningCoursesAndUnits(uid: string): Promise<{
     return { courses: loadedCourses, unitMap: newUnitMap };
   } catch (error) {
     console.error("Error fetching learning courses and units:", error);
+    return { courses: [], unitMap: {} };
+  }
+}
+
+export async function fetchChannelCoursesAndUnits(uid: string): Promise<{
+  courses: Course[];
+  unitMap: Record<string, Unit[]>;
+}> {
+  const loadedCourses: Course[] = [];
+  const newUnitMap: Record<string, Unit[]> = {};
+
+  try {
+    const channelRef = doc(db, "channels", uid);
+    const channelSnap = await getDoc(channelRef);
+    if (!channelSnap.exists()) throw new Error("Channel not found");
+
+    const channelData = channelSnap.data();
+    const courseIds: string[] = channelData.courses || [];
+
+    for (const courseId of courseIds) {
+      const courseRef = doc(db, "courses", courseId);
+      const courseSnap = await getDoc(courseRef);
+      if (!courseSnap.exists()) continue;
+
+      const course = { ...courseSnap.data(), key: courseId } as Course;
+      loadedCourses.push(course);
+
+      const unitsRef = collection(db, "courses", courseId, "units");
+      const unitsSnap = await getDocs(unitsRef);
+
+      newUnitMap[courseId] = [];
+      unitsSnap.forEach((unitDoc) => {
+        newUnitMap[courseId].push(unitDoc.data() as Unit);
+      });
+    }
+
+    return { courses: loadedCourses, unitMap: newUnitMap };
+  } catch (error) {
+    console.error("Error fetching channel courses and units:", error);
     return { courses: [], unitMap: {} };
   }
 }

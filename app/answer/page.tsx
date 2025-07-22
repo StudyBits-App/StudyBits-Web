@@ -3,9 +3,11 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   AnswerHint,
+  Course,
   QuestionAnswer,
   QuestionMetadata,
   RawQuestionMetadata,
+  Unit,
 } from "@/utils/interfaces";
 import { useAuth } from "@/hooks/authContext";
 import { getCourseUnitNamesFromId } from "@/services/channelHelpers";
@@ -49,9 +51,9 @@ const AnswerPage: React.FC = () => {
     ReturnType<typeof createCourseUnitSelector>
   > | null>(null);
 
-  const onUnitSelect = (courseId: string, unitId: string) => {
-    setStudyingCourse(courseId);
-    setStudiedUnit(unitId);
+  const handleUnitSelect = (course: Course, unit: Unit | null) => {
+    setStudyingCourse(course.key);
+    setStudiedUnit(unit ? unit.key : "");
   };
 
   const fetchQuestions = useCallback(async () => {
@@ -353,8 +355,9 @@ const AnswerPage: React.FC = () => {
         <CourseDialog
           open={courseOpen}
           onOpenChange={setCourseOpen}
-          onUnitSelect={onUnitSelect}
+          onUnitSelect={handleUnitSelect}
           type={"learning"}
+          cache = {false}
         />
       </SidebarInset>
     </SidebarProvider>

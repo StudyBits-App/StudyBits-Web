@@ -15,16 +15,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useEffect, useState } from "react";
 import { Course, Unit } from "@/utils/interfaces";
-import { fetchLearningCoursesAndUnits } from "@/services/courseUnitData";
+import {
+  fetchChannelCoursesAndUnits,
+  fetchLearningCoursesAndUnits,
+} from "@/services/courseUnitData";
 import { useAuth } from "@/hooks/authContext";
 
 interface CourseDialogueProps {
   open: boolean;
   onOpenChange: (val: boolean) => void;
-  onUnitSelect: (courseId: string, unitId: string) => void;
+  onUnitSelect: (course: Course, unit: Unit | null) => void;
   courseOnly?: boolean;
   type: string;
   channelId?: string;
+  cache: boolean;
 }
 export function CourseDialog({
   open,
@@ -32,6 +36,7 @@ export function CourseDialog({
   onUnitSelect,
   courseOnly = false,
   type,
+  cache,
 }: CourseDialogueProps) {
   const [courses, setCourses] = useState<Course[]>([]);
   const [unitMap, setUnitMap] = useState<Record<string, Unit[]>>({});
@@ -39,7 +44,6 @@ export function CourseDialog({
 
   useEffect(() => {
     if (!open) return;
-
     const getCache = () => {
       const loadedCourses: Course[] = [];
       const newUnitMap: Record<string, Unit[]> = {};
@@ -48,7 +52,6 @@ export function CourseDialog({
         const key = localStorage.key(i);
         if (!key) continue;
 
-        // Example: "channel-course-abc123"
         if (key.startsWith("channel-course-")) {
           try {
             const item = localStorage.getItem(key);
@@ -60,21 +63,24 @@ export function CourseDialog({
             console.warn("Failed to parse course:", key, error);
           }
         }
+        if (key.startsWith("channel-unit-")) {
+          const withoutPrefix = key.replace("channel-unit-", ""); 
+          const parts = withoutPrefix.split("-");
+          if (parts.length < 6) {
+            console.warn("Malformed unit key:", key);
+            return;
+          }
 
-        // Example: "channel-unit-abc123-unit456"
-        if (key.startsWith(`channel-unit-`)) {
-          const parts = key.split("-");
-          if (parts.length >= 4) {
-            const courseId = parts[2];
-            const item = localStorage.getItem(key);
-            if (item) {
-              try {
-                const unit = JSON.parse(item) as Unit;
-                if (!newUnitMap[courseId]) newUnitMap[courseId] = [];
-                newUnitMap[courseId].push(unit);
-              } catch {
-                console.warn("Failed to parse unit:", key);
-              }
+          const courseId = parts.slice(0, 5).join("-");
+          const item = localStorage.getItem(key);
+
+          if (item) {
+            try {
+              const unit = JSON.parse(item) as Unit;
+              if (!newUnitMap[courseId]) newUnitMap[courseId] = [];
+              newUnitMap[courseId].push(unit);
+            } catch {
+              console.warn("Failed to parse unit JSON for:", key);
             }
           }
         }
@@ -83,24 +89,24 @@ export function CourseDialog({
       setUnitMap(newUnitMap);
     };
 
-    const loadFromFirebase = async () => {
+    const loadCoursesAndUnits = async () => {
       try {
-        const { courses, unitMap } = await fetchLearningCoursesAndUnits(
-          user?.uid as string
-        );
+        const { courses, unitMap } =
+          type === "channel"
+            ? await fetchChannelCoursesAndUnits(user?.uid as string)
+            : await fetchLearningCoursesAndUnits(user?.uid as string);
         setCourses(courses);
         setUnitMap(unitMap);
       } catch (err) {
         console.error("Failed to fetch from Firebase:", err);
       }
     };
-
-    if (type === "channel") {
+    if (cache) {
       getCache();
     } else {
-      loadFromFirebase();
+      loadCoursesAndUnits();
     }
-  }, [open, type, user?.uid]);
+  }, [cache, open, type, user?.uid]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -117,7 +123,7 @@ export function CourseDialog({
                 className="flex items-center gap-4 bg-zinc-800 p-3 rounded-md border border-zinc-700 cursor-pointer hover:bg-zinc-700 transition"
                 onClick={() => {
                   onOpenChange(false);
-                  onUnitSelect(course.key, "");
+                  onUnitSelect(course, null);
                 }}
               >
                 {course.picUrl && (
@@ -152,7 +158,7 @@ export function CourseDialog({
                         key={unit.key}
                         onClick={() => {
                           onOpenChange(false);
-                          onUnitSelect(course.key, unit.key);
+                          onUnitSelect(course, unit);
                         }}
                       >
                         {unit.name}

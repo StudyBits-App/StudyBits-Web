@@ -7,6 +7,7 @@ import { IconPlus } from "@tabler/icons-react";
 
 interface ChannelDisplayProps {
   channel: Channel;
+  link?: string;
   onPlusClick?: () => void;
 }
 

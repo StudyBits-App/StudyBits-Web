@@ -18,102 +18,110 @@ import {
 } from "@/services/deleteCourseUnitData";
 import { useAuth } from "@/hooks/authContext";
 import { getChannelData } from "@/services/channelHelpers";
-import { cacheCoursesAndUnits } from "@/services/cacheServices";
+import { classifyUnit } from "@/utils/classify";
+import LoadingScreen from "@/components/loading";
 
+type EditableUnit = Unit & {
+  isNew?: boolean;
+  isModified?: boolean;
+};
 export default function ManageCoursePage() {
   const { id } = useParams();
   const { user } = useAuth();
-  const [units, setUnits] = useState<Unit[]>([]);
+  const [units, setUnits] = useState<EditableUnit[]>([]);
+  const [unitSaveLoading, setUnitSaveLoading] = useState(false);
   const router = useRouter();
-  const STORAGE_PREFIX = `channel-unit-${id}-`;
 
   useEffect(() => {
     async function verifyId() {
       const channelData = await getChannelData(user?.uid as string);
       const courseArray = channelData?.courses;
-      if (Array.isArray(courseArray) && !courseArray.includes(id as string))
+      if (Array.isArray(courseArray) && !courseArray.includes(id as string)) {
         router.push("/channel");
+      }
     }
+
     async function fetchUnits() {
       if (!id || typeof id !== "string") return;
-
-      const units: Unit[] = [];
-
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key?.startsWith(STORAGE_PREFIX)) {
-          const item = localStorage.getItem(key);
-          if (item) {
-            try {
-              const unit = JSON.parse(item) as Unit;
-              units.push(unit);
-            } catch {
-              console.warn("Invalid cached unit:", key);
-            }
-          }
-        }
-      }
-
-      if (units.length > 0) {
-        setUnits(units);
-      } else {
-        const data = await getUnitsForCourse(id);
-        setUnits(data);
-      }
+      const data = await getUnitsForCourse(id);
+      setUnits(data);
     }
 
     verifyId();
     fetchUnits();
-  }, [STORAGE_PREFIX, id, router, user?.uid]);
+  }, [id, router, user?.uid]);
 
+  const handleCourseDelete = async () => {
+    await handleChannelCourseDelete(id as string, user?.uid as string);
+    router.push("/");
+  };
+
+  const handleAddUnit = () => {
+    const newUnit: EditableUnit = {
+      key: uuidv4(),
+      name: "",
+      description: "",
+      order: units.length,
+      isNew: true,
+      isModified: true,
+    };
+    setUnits((prev) => [...prev, newUnit]);
+  };
 
   const updateUnitField = (key: string, field: keyof Unit, value: string) => {
     setUnits((prev) =>
       prev.map((unit) =>
-        unit.key === key ? { ...unit, [field]: value } : unit
+        unit.key === key ? { ...unit, [field]: value, isModified: true } : unit
       )
     );
-  };
-
-  const handleSave = async (unit: Unit) => {
-    if (!id || typeof id !== "string") return;
-    await saveUnit(id, unit);
-    localStorage.setItem(`${STORAGE_PREFIX}${unit.key}`, JSON.stringify(unit));
   };
 
   const handleDelete = async (unitKey: string) => {
     if (!id || typeof id !== "string") return;
 
-    alert(
-      "Warning: Deleting this unit will delete all of the questions associated with it."
+    const target = units.find((u) => u.key === unitKey);
+    if (!target) return;
+
+    const confirmed = window.confirm(
+      "Do you really want to delete this unit and all its questions?"
     );
-    const confirmed = window.confirm("Do you really want to delete this unit?");
     if (!confirmed) return;
 
+    if (target.isNew) {
+      setUnits((prev) => prev.filter((unit) => unit.key !== unitKey));
+      return;
+    }
     await deleteUnit(id, unitKey);
     await deleteQuestionsForUnit(id, unitKey);
     setUnits((prev) => prev.filter((unit) => unit.key !== unitKey));
-    localStorage.removeItem(`${STORAGE_PREFIX}${unitKey}`);
   };
 
-  const handleCourseDelete = async () => {
-    await handleChannelCourseDelete(id as string, user?.uid as string);
-    await cacheCoursesAndUnits(user?.uid as string);
-    router.push("/");
-  };
+  const handleSaveAll = async () => {
+    if (!id || typeof id !== "string") return;
+    setUnitSaveLoading(true);
+    const changedUnits = units.filter((u) => u.isNew || u.isModified);
 
-  const handleAddUnit = () => {
-    const newUnit: Unit = {
-      key: uuidv4(),
-      name: "",
-      description: "",
-      order: units.length,
-    };
-    setUnits((prev) => [...prev, newUnit]);
-    localStorage.setItem(
-      `${STORAGE_PREFIX}${newUnit.key}`,
-      JSON.stringify(newUnit)
+    for (const unit of changedUnits) {
+      const cleanUnit: Unit = {
+        key: unit.key,
+        name: unit.name,
+        description: unit.description,
+        order: unit.order,
+      };
+      const tags = await classifyUnit(unit.name);
+      if ("tags" in tags && tags.tags.length > 0) {
+        await saveUnit(id, cleanUnit, tags.tags);
+      }
+    }
+
+    setUnits((prev) =>
+      prev.map((unit) => ({
+        ...unit,
+        isNew: false,
+        isModified: false,
+      }))
     );
+    setUnitSaveLoading(false);
   };
 
   return (
@@ -143,14 +151,31 @@ export default function ManageCoursePage() {
             </CardContent>
           </Card>
 
-          <CourseDisplay courseId={id as string} cache={true} />
+          <CourseDisplay courseId={id as string} />
 
           <div className="bg-zinc-900 rounded-2xl shadow-md p-4 flex items-center justify-between">
-            <h1 className="text-xl font-semibold text-white">Units</h1>
-            <IconPlus
-              className="w-10 h-10 text-white cursor-pointer"
-              onClick={handleAddUnit}
-            />
+            <h1 className="text-xl font-semibold text-white w-1/3">Units</h1>
+
+            <div className="flex justify-center w-1/3">
+              {units.some((u) => u.isNew || u.isModified) &&
+                (unitSaveLoading ? (
+                  <LoadingScreen />
+                ) : (
+                  <button
+                    onClick={handleSaveAll}
+                    className="px-4 py-2 border hover:bg-zinc-700 rounded-xl"
+                  >
+                    Save All
+                  </button>
+                ))}
+            </div>
+
+            <div className="flex justify-end w-1/3">
+              <IconPlus
+                className="w-10 h-10 text-white cursor-pointer"
+                onClick={handleAddUnit}
+              />
+            </div>
           </div>
 
           {units.map((unit) => (
@@ -166,7 +191,6 @@ export default function ManageCoursePage() {
                   onChange={(e) =>
                     updateUnitField(unit.key, "name", e.target.value)
                   }
-                  onBlur={() => handleSave(unit)}
                 />
                 <button
                   onClick={() => handleDelete(unit.key)}
@@ -183,7 +207,6 @@ export default function ManageCoursePage() {
                 onChange={(e) =>
                   updateUnitField(unit.key, "description", e.target.value)
                 }
-                onBlur={() => handleSave(unit)}
                 placeholder="Unit description"
                 onInput={(e) => {
                   const target = e.target as HTMLTextAreaElement;

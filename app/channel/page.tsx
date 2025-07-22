@@ -54,7 +54,6 @@ export default function ChannelPage() {
                     <CourseCard
                       courseId={courseId}
                       link="/manageCourse"
-                      cache={true}
                     />
                   </div>
                 ))}

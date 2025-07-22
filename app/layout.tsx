@@ -6,7 +6,6 @@ import React, { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { AuthProvider, useAuth } from "@/hooks/authContext";
 import { useUserChannel } from "@/hooks/channelContext";
-import { cacheCoursesAndUnits, cacheSubscribedCourses } from "@/services/cacheServices";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,16 +31,6 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       router.push("/signin");
     }
   }, [user, loading, pathname, router]);
-
-  useEffect(() => {
-    const initialize = async () => {
-      if (user?.uid) {
-        await cacheCoursesAndUnits(user?.uid);
-        await cacheSubscribedCourses(user.uid);
-      }
-    };
-    initialize();
-  }, [user]);
 
   useEffect(() => {
     const channelOnly = [

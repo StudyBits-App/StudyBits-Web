@@ -4,13 +4,15 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { IconPencil, IconTrash } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
-import { Question } from "@/utils/interfaces";
+import { Course, Question, Unit } from "@/utils/interfaces";
 import {
   deleteQuestionFromUnit,
   getQuestionsForCourseUnit,
 } from "@/services/questionData";
 import { useRouter } from "next/navigation";
 import { CourseDialog } from "@/components/course-unit-selector";
+import { cacheCoursesAndUnits } from "@/services/cacheServices";
+import { useAuth } from "@/hooks/authContext";
 
 export default function ManageQuestionsPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -19,6 +21,7 @@ export default function ManageQuestionsPage() {
   const [courseId, setCourseId] = useState<string | null>(null);
   const [unitId, setUnitId] = useState<string | null>(null);
   const [courseOpen, setCourseOpen] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     async function getQuestions() {
@@ -40,8 +43,9 @@ export default function ManageQuestionsPage() {
 
     if (courseId && unitId) {
       getQuestions();
+      cacheCoursesAndUnits(user?.uid as string);
     }
-  }, [courseId, router, unitId]);
+  }, [courseId, router, unitId, user?.uid]);
 
   const publishEditRedirect = (questionId: string) => {
     router.push(`/questionPortal/publish/${questionId}`);
@@ -51,10 +55,12 @@ export default function ManageQuestionsPage() {
     router.push(`/questionPortal/publish/${questionId}`);
   };
 
-  const handleUnitSelect = (courseId: string, unitId: string) => {
-    setCourseId(courseId);
-    setUnitId(unitId);
-  };
+const handleUnitSelect = (course: Course, unit: Unit | null) => {
+  if (!unit) return;
+  setCourseId(course.key);
+  setUnitId(unit.key);
+};
+
 
   const renderQuestionList = (
     questions: Question[],
@@ -88,7 +94,12 @@ export default function ManageQuestionsPage() {
               </button>
               <button
                 onClick={() =>
-                  deleteQuestionFromUnit(courseId as string, unitId as string, question.id, isDraft)
+                  deleteQuestionFromUnit(
+                    courseId as string,
+                    unitId as string,
+                    question.id,
+                    isDraft
+                  )
                 }
                 className="p-2 bg-red-600 hover:bg-red-700 rounded-lg"
                 title="Delete Question"
@@ -145,6 +156,7 @@ export default function ManageQuestionsPage() {
           onOpenChange={setCourseOpen}
           onUnitSelect={handleUnitSelect}
           type={"channel"}
+          cache={true}
         />
       </SidebarInset>
     </SidebarProvider>

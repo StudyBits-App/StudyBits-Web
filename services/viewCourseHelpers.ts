@@ -39,13 +39,27 @@ export const fetchCourseInteractionData = async (
     const isStudied = courseSnap.exists();
 
     if (isStudied) {
-      const courseRef = doc(db, "learning", uid, "courses", courseId);
-      const docSnap = await getDoc(courseRef);
+      const data = courseSnap.data();
+      useUnits = data?.useUnits ?? false;
+      studyingUnits = data?.studyingUnits ?? [];
 
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        useUnits = data?.useUnits ?? false;
-        studyingUnits = data?.studyingUnits ?? [];
+      if (useUnits && studyingUnits.length > 0) {
+        const unitChecks = await Promise.all(
+          studyingUnits.map(async (unitId) => {
+            const unitRef = doc(db, "courses", courseId, "units", unitId);
+            const unitSnap = await getDoc(unitRef);
+            return unitSnap.exists();
+          })
+        );
+
+        const allUnitsExist = unitChecks.every(Boolean);
+        if (!allUnitsExist) {
+          console.warn(
+            `[Interaction] One or more studyingUnits are invalid for course ${courseId}. Resetting.`
+          );
+          useUnits = false;
+          studyingUnits = [];
+        }
       }
     }
 

@@ -12,6 +12,7 @@ import { v4 as uuidv4, v4 } from "uuid";
 import { createNewCourse } from "@/services/courseUnitData";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { classifyCourse } from "@/utils/classify";
 
 export default function CreateCoursePage() {
   const [course, setCourse] = useState<Course>({
@@ -35,25 +36,28 @@ export default function CreateCoursePage() {
     }
 
     try {
-      if (course.picUrl && course.picUrl.startsWith("blob:")) {
-        const file = await fetch(course.picUrl).then((res) => res.blob());
-        const uploadedUrl = await uploadImageToFirebase(file, "coursePics");
-        course.picUrl = uploadedUrl;
-      }
-      const id = v4();
-      console.log(id);
-      const uploadedCourse = await createNewCourse(
-        user?.uid as string,
-        course,
-        id
-      );
-      console.log(uploadedCourse);
+      const tags = await classifyCourse(course.name);
 
-      localStorage.setItem(
-        `channel-course-${id}`,
-        JSON.stringify(uploadedCourse)
-      );
-      router.push(`/manageCourse/${id}`);
+      if ("tags" in tags && tags.tags.length > 0) {
+        console.log(tags.tags);
+        if (course.picUrl && course.picUrl.startsWith("blob:")) {
+          const file = await fetch(course.picUrl).then((res) => res.blob());
+          const uploadedUrl = await uploadImageToFirebase(file, "coursePics");
+          course.picUrl = uploadedUrl;
+        }
+        const id = v4();
+        console.log(id);
+        const uploadedCourse = await createNewCourse(
+          user?.uid as string,
+          course,
+          id,
+          tags.tags
+        );
+        console.log(uploadedCourse);
+        router.push(`/manageCourse/${id}`);
+      } else {
+        console.warn("Classification failed");
+      }
     } catch (error) {
       console.error("Error creating course:", error);
     }

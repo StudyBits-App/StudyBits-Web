@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { notFound, useParams, useRouter } from "next/navigation";
-import { Channel, Unit } from "@/utils/interfaces";
+import { Channel, Course, Unit } from "@/utils/interfaces";
 import {
   addCourseToUserLearning,
   fetchCourseInteractionData,
@@ -33,6 +33,8 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { deleteLearning } from "@/services/deleteCourseUnitData";
 import { CourseDialog } from "@/components/course-unit-selector";
+import { cacheSubscribedCourses } from "@/services/cacheServices";
+import { isPageRefresh, useOnRefresh } from "@/utils/onRefresh";
 
 export default function ViewCoursesPage() {
   const { id } = useParams();
@@ -75,8 +77,10 @@ export default function ViewCoursesPage() {
         const subCourses = await getSubscribedCourses(id);
         setSubscribedCourses(subCourses);
 
-        const isSub = await checkIfSubscribed(id);
-        setSubscribedTo(isSub);
+        if (!isPageRefresh()) {
+          const isSub = await checkIfSubscribed(id);
+          setSubscribedTo(isSub);
+        }
       } catch (err) {
         console.error("Error loading course:", err);
       }
@@ -84,6 +88,19 @@ export default function ViewCoursesPage() {
 
     fetchCourseData();
   }, [id, user?.uid]);
+
+  useOnRefresh(() => {
+    const refreshSub = async () => {
+      try {
+        await cacheSubscribedCourses(user?.uid as string);
+        const isSub = await checkIfSubscribed(id as string);
+        setSubscribedTo(isSub);
+      } catch (err) {
+        console.log("Error getting sub status:", err);
+      }
+    };
+    refreshSub();
+  });
 
   const handleAddCourse = async () => {
     if (!user?.uid || typeof id !== "string") return;
@@ -130,7 +147,7 @@ export default function ViewCoursesPage() {
         const mapStr = localStorage.getItem(`subscriptions`);
         if (mapStr) {
           const map = JSON.parse(mapStr) as Record<string, string>;
-          console.log(map[id])
+          console.log(map[id]);
           await unsubscribeFromCourse(id, map[id], user?.uid);
           setSubscribedTo(false);
         }
@@ -149,8 +166,8 @@ export default function ViewCoursesPage() {
     notFound();
   }
 
-  const handleCourseSelect = async (courseId: string) => {
-    await subscribeToCourse(id as string, courseId, user?.uid as string);
+  const handleCourseSelect = async (course: Course) => {
+    await subscribeToCourse(id as string, course.key, user?.uid as string);
     setSubscribedTo(true);
   };
 
@@ -270,6 +287,7 @@ export default function ViewCoursesPage() {
               onUnitSelect={handleCourseSelect}
               courseOnly={true}
               type={"learning"}
+              cache = {false}
             />
           )}
         </div>

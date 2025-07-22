@@ -83,7 +83,6 @@ export default function HomepPage() {
                 <CourseCard
                   courseId={courseId}
                   link={`/viewCourse`}
-                  cache={false}
                 />
               </div>
             ))}

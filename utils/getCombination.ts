@@ -1,5 +1,11 @@
 import axios from "axios";
-import { collection, getDocs, getFirestore } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  getFirestore,
+} from "firebase/firestore";
 import { shuffleArray } from "./utils";
 import { RawQuestionMetadata } from "./interfaces";
 
@@ -66,13 +72,27 @@ export async function createCourseUnitSelector(uid: string) {
       combo.unitId
     );
 
+    const courseRef = combo.unitId
+      ? doc(db, "courses", combo.courseId, "units", combo.unitId)
+      : doc(db, "courses", combo.courseId);
+    const courseSnap = await getDoc(courseRef);
+    if (!courseSnap.exists()) {
+      console.warn(
+        `[Selector] Course ${combo.courseId} does not exist. Redirecting.`
+      );
+      return {
+        error: true,
+        message: `Go back to course ${combo.courseId} and confirm your unit selections.`,
+      };
+    }
+
     try {
       const res = await axios.post(
         "https://study-bits-api.vercel.app/find_similar_courses",
         {
           course_id: combo.courseId,
           unit_id: combo.unitId,
-          uid: uid
+          uid: uid,
         }
       );
 
@@ -112,6 +132,20 @@ export async function createCourseUnitSelector(uid: string) {
     unitId: string
   ): Promise<ApiResponseResult> => {
     try {
+      const courseRef = unitId
+        ? doc(db, "courses", courseId, "units", unitId)
+        : doc(db, "courses", courseId);
+      const courseSnap = await getDoc(courseRef);
+      if (!courseSnap.exists()) {
+        console.warn(
+          `[Selector] Course ${courseId} does not exist. Redirecting.`
+        );
+        return {
+          error: true,
+          message: `Go back to course ${courseId} and confirm your unit selections.`,
+        };
+      }
+
       const res = await axios.post(
         "https://study-bits-api.vercel.app/find_similar_courses",
         {

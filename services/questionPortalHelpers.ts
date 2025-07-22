@@ -71,13 +71,13 @@ export async function submitNewQuestion({
   answers,
   course,
   unit,
-}: Question): Promise<"success" | "error"> {
+}: Question): Promise<"error" | { status: "success"; id: string }> {
   const questionData = {
     question,
     hints,
     answers,
-    course: course,
-    unit: unit,
+    course,
+    unit,
   };
 
   const unitDocRef = doc(db, "courses", course, "units", unit);
@@ -102,7 +102,10 @@ export async function submitNewQuestion({
       numQuestions: increment(1),
     });
 
-    return "success";
+    return {
+      status: "success",
+      id: questionDocRef.id,
+    };
   } catch (error) {
     console.error("Error writing question to Firestore:", error);
     return "error";
@@ -309,17 +312,22 @@ export const handleHintImages = async (
 
 export const submitEditedQuestion = async (
   editingQuestion: EditingQuestion
-): Promise<"success" | "error"> => {
+): Promise<"error" | { status: "success"; id: string }> => {
   try {
+    if (!editingQuestion.id) {
+      throw new Error("Question ID is required.");
+    }
+
     const updatedHints = await handleHintImages(
       editingQuestion.hints,
       editingQuestion.oldHints
     );
 
-    if (
+    const courseChanged =
       editingQuestion.course !== editingQuestion.oldCourse ||
-      editingQuestion.unit !== editingQuestion.oldUnit
-    ) {
+      editingQuestion.unit !== editingQuestion.oldUnit;
+
+    if (courseChanged) {
       const oldUnitRef = doc(
         db,
         "courses",
@@ -327,8 +335,6 @@ export const submitEditedQuestion = async (
         "units",
         editingQuestion.oldUnit
       );
-      const oldCourseRef = doc(db, "courses", editingQuestion.oldCourse);
-
       const newUnitRef = doc(
         db,
         "courses",
@@ -336,34 +342,27 @@ export const submitEditedQuestion = async (
         "units",
         editingQuestion.unit
       );
+      const oldCourseRef = doc(db, "courses", editingQuestion.oldCourse);
       const newCourseRef = doc(db, "courses", editingQuestion.course);
 
-      const oldUnitSnap = await getDoc(oldUnitRef);
-      const newUnitSnap = await getDoc(newUnitRef);
+      const [oldUnitSnap, newUnitSnap] = await Promise.all([
+        getDoc(oldUnitRef),
+        getDoc(newUnitRef),
+      ]);
 
       if (!oldUnitSnap.exists() || !newUnitSnap.exists()) {
         throw new Error("One of the unit documents does not exist.");
       }
 
-      await updateDoc(oldCourseRef, {
-        numQuestions: increment(-1),
-      });
-
-      await updateDoc(newCourseRef, {
-        numQuestions: increment(1),
-      });
-
-      await updateDoc(oldUnitRef, {
-        questions: arrayRemove(editingQuestion.id),
-      });
-
-      await updateDoc(newUnitRef, {
-        questions: arrayUnion(editingQuestion.id),
-      });
+      await Promise.all([
+        updateDoc(oldCourseRef, { numQuestions: increment(-1) }),
+        updateDoc(newCourseRef, { numQuestions: increment(1) }),
+        updateDoc(oldUnitRef, { questions: arrayRemove(editingQuestion.id) }),
+        updateDoc(newUnitRef, { questions: arrayUnion(editingQuestion.id) }),
+      ]);
     }
 
     const questionRef = doc(db, "questions", editingQuestion.id);
-
     const updatedQuestion: Question = {
       id: editingQuestion.id,
       question: editingQuestion.question,
@@ -374,9 +373,21 @@ export const submitEditedQuestion = async (
     };
 
     await setDoc(questionRef, updatedQuestion, { merge: true });
-    return "success";
+
+    return {
+      status: "success",
+      id: editingQuestion.id,
+    };
   } catch (error) {
     console.error("Error editing question:", error);
     return "error";
   }
 };
+
+export const addTagsToQuestion = async (id: string, qTags: string[]) => {
+  const questionRef = doc(db, "questions", id);
+  const question: {tags: string[]} = {
+    tags: qTags
+  }
+  await setDoc(questionRef, question, {merge: true})
+}

@@ -13,43 +13,18 @@ interface CourseCardProps {
   courseId: string;
   link: string;
   channel?: boolean;
-  cache: boolean;
 }
 
-export function CourseCard({
-  courseId,
-  link,
-  channel,
-  cache,
-}: CourseCardProps) {
+export function CourseCard({ courseId, link, channel }: CourseCardProps) {
   const [course, setCourse] = useState<Course | null>(null);
   const [courseChannel, setCourseChannel] = useState<Channel | null>(null);
 
   useEffect(() => {
     async function fetchCourse() {
       try {
-        let data: Course | null = null;
-
-        if (cache) {
-          const cached = localStorage.getItem(`channel-course-${courseId}`);
-          if (cached) {
-            try {
-              data = JSON.parse(cached);
-              setCourse(data);
-            } catch {
-              console.warn(
-                "Invalid cached course data, falling back to fetch."
-              );
-            }
-          }
-        }
-
-        if (!data) {
-          data = await getCourseData(courseId);
-          setCourse(data);
-        }
-
-        if (channel && data) {
+        const data = await getCourseData(courseId);
+        setCourse(data);
+        if (channel) {
           const channelData = await getChannelData(data.creator);
           setCourseChannel(channelData);
         }
@@ -57,9 +32,8 @@ export function CourseCard({
         console.error("Failed to fetch course:", err);
       }
     }
-
     fetchCourse();
-  }, [channel, courseId, cache]);
+  }, [channel, courseId]);
 
   if (!course) return <LoadingScreen />;
 
