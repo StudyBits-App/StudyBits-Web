@@ -110,7 +110,7 @@ export default function ManageCoursePage() {
       };
       const tags = await classifyUnit(unit.name);
       if ("tags" in tags && tags.tags.length > 0) {
-      await saveUnit(id, cleanUnit, []);
+      await saveUnit(id, cleanUnit, tags.tags);
       }
     }
 

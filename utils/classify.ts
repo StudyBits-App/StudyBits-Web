@@ -8,7 +8,7 @@ export const classifyCourse = async (
   courseName: string,
 ): Promise<ClassificationResult> => {
   try {
-    const res = await axios.post("http://127.0.0.1:5000/courseClassify", {
+    const res = await axios.post("https://study-bits-api.vercel.app/courseClassify", {
       course_name: courseName,
     });
 
@@ -33,7 +33,7 @@ export const classifyUnit = async (
   unitName: string,
 ): Promise<ClassificationResult> => {
   try {
-    const res = await axios.post("http://127.0.0.1:5000/unitClassify", {
+    const res = await axios.post("https://study-bits-api.vercel.app/unitClassify", {
       unit_name: unitName,
     });
 
@@ -58,7 +58,7 @@ export const classifyQuestion = async (
   qId: string,
 ): Promise<ClassificationResult> => {
   try {
-    const res = await axios.post("http://127.0.0.1:5000/questionClassify", {
+    const res = await axios.post("https://study-bits-api.vercel.app/questionClassify", {
       question_id: qId,
     });
 
