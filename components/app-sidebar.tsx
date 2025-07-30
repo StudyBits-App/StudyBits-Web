@@ -20,38 +20,40 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
-
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  navMain: [
-    {
-      title: "Home",
-      url: "/",
-      icon: IconHome,
-    },
-    {
-      title: "Answer",
-      url: "/answer",
-      icon: IconPencil,
-    },
-    {
-      title: "Channel",
-      url: "/channel",
-      icon: IconUsersGroup,
-    },
-    {
-      title: "Question Portal",
-      url: "/questionPortal",
-      icon: IconQuestionMark,
-    },
-  ],
-};
+import { useAuth } from "@/hooks/authContext";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user } = useAuth();
+
+  const data = {
+    user: {
+      email: user?.email || "me@example.com",
+      avatar: `https://robohash.org/${user?.uid}`,
+    },
+    navMain: [
+      {
+        title: "Home",
+        url: "/",
+        icon: IconHome,
+      },
+      {
+        title: "Answer",
+        url: "/answer",
+        icon: IconPencil,
+      },
+      {
+        title: "Channel",
+        url: "/channel",
+        icon: IconUsersGroup,
+      },
+      {
+        title: "Question Portal",
+        url: "/questionPortal",
+        icon: IconQuestionMark,
+      },
+    ],
+  };
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>

@@ -364,7 +364,6 @@ export const submitEditedQuestion = async (
 
     const questionRef = doc(db, "questions", editingQuestion.id);
     const updatedQuestion: Question = {
-      id: editingQuestion.id,
       question: editingQuestion.question,
       hints: updatedHints,
       answers: editingQuestion.answers,

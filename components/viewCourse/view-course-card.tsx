@@ -45,8 +45,8 @@ export function ViewCourseCard({
 
   return (
     <Link href={courseHref} className="block w-full">
-      <Card className="w-full bg-zinc-900 border border-zinc-800 hover:shadow-md transition">
-        <CardContent className="flex items-start gap-4 p-4">
+      <Card className="w-full bg-[var(--card)] border border-zinc-800 hover:shadow-md transition overflow-hidden">
+        <CardContent className="flex items-start gap-4 p-4 w-full">
           {course.picUrl && (
             <div className="w-14 h-14 relative rounded-full overflow-hidden shrink-0 border border-zinc-700">
               <Image
@@ -58,19 +58,29 @@ export function ViewCourseCard({
             </div>
           )}
 
-          <div className="flex-1 overflow-hidden">
-            <h2 className="text-white font-semibold text-base truncate">
+          <div className="flex flex-col flex-grow min-w-0 overflow-hidden">
+            <h1 className="text-lg font-semibold text-white leading-tight break-words">
               {course.name}
-            </h2>
+            </h1>
+
             {course.description && (
-              <p className="text-sm text-zinc-400 mt-1 line-clamp-3">
+              <p className="text-sm text-zinc-400 mt-1 break-words">
                 {course.description}
               </p>
             )}
+
+            <div className="flex flex-wrap items-center gap-4 mt-2 text-zinc-400 text-sm">
+              {course.numSubscribers !== undefined && (
+                <div className="flex items-center gap-1">
+                  {course.numSubscribers}
+                  {" subscribers"}
+                </div>
+              )}
+            </div>
           </div>
 
           {showSubscribeButton && (
-            <div className="ml-auto">
+            <div className="ml-2 shrink-0 self-start">
               <Button
                 className={`text-xs px-3 py-1 rounded-lg border ${
                   isSubscribed

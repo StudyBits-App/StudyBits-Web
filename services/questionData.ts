@@ -34,11 +34,15 @@ export async function getQuestionsForCourseUnit(
           qid
         );
         const questionSnap = await getDoc(questionRef);
-        return questionSnap.exists() ? (questionSnap.data() as Question) : null;
+
+        if (!questionSnap.exists()) return null;
+
+        const data = questionSnap.data() as Question;
+        return { ...data, id: qid };
       })
     );
 
-    return questionDocs.filter((q): q is Question => q !== null);
+    return questionDocs.filter(Boolean) as Question[];
   } catch (error) {
     console.error("Error fetching questions for course unit:", error);
     return [];

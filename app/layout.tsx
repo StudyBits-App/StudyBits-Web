@@ -34,7 +34,6 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const channelOnly = [
-      "/channel",
       "/createCourse",
       "/manageCourse",
       "/manageQuestions",

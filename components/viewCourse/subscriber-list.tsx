@@ -68,7 +68,7 @@ export default function SubscriberList({ link, ids }: SubscriberListProps) {
           key={course.key}
           onClick={() => handleClick(course.key)}
           className={clsx(
-            "rounded-lg border bg-zinc-900 p-4 cursor-pointer transition hover:border-zinc-600",
+            "rounded-lg border bg-[var(--card)] p-4 cursor-pointer transition hover:border-zinc-600",
             "border-zinc-700"
           )}
         >

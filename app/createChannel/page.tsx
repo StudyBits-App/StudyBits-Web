@@ -15,6 +15,7 @@ import {
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Channel } from "@/utils/interfaces";
+import LoadingScreen from "@/components/loading";
 
 export default function CreateChannelPage() {
   const { user } = useAuth();
@@ -27,6 +28,7 @@ export default function CreateChannelPage() {
   >(null);
   const [displayName, setDisplayName] = useState("");
   const [channel, setChannel] = useState<Channel | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     async function checkChannel() {
@@ -53,9 +55,15 @@ export default function CreateChannelPage() {
       return;
     }
 
-    if(channel !== null) return;
+    if (displayName.trim().length > 100) {
+      alert("Display name must be 100 characters or fewer");
+      return;
+    }
+
+    if (channel !== null) return;
 
     try {
+      setLoading(true);
       let bannerURL: string | null = null;
       let profilePicURL: string | null = null;
 
@@ -79,6 +87,7 @@ export default function CreateChannelPage() {
           bannerURL || "",
           profilePicURL
         );
+        setLoading(false);
         router.push("/channel");
       }
     } catch (error) {
@@ -97,11 +106,11 @@ export default function CreateChannelPage() {
       }
     >
       <AppSidebar variant="inset" />
-      <SidebarInset className="p-6 space-y-6 bg-zinc-950 min-h-screen">
-        <div className="py-12 space-y-6 px-6 bg-zinc-950 min-h-screen">
+      <SidebarInset className="p-6 space-y-6 min-h-screen">
+        <div className="py-12 space-y-6 px-6 min-h-screen bg-[var(--background)]">
           <h1 className="text-white text-2xl font-bold">Create Your Channel</h1>
 
-          <Card className="bg-zinc-900 p-10 space-y-2">
+          <Card className="p-10 space-y-2 bg-[var(--card)]">
             <div className="flex flex-col space-y-2">
               <label className="text-white text-sm font-medium">
                 Banner Image
@@ -163,16 +172,24 @@ export default function CreateChannelPage() {
                 Display Name
               </label>
               <Input
-                className="text-white"
+                className="text-white bg-zinc-900 border border-zinc-600 rounded-md p-2"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 placeholder="Your channel name"
               />
             </div>
-
-            <Button className="w-full mt-4" onClick={handleCreateChannel}>
-              Create Channel
-            </Button>
+            {loading ? (
+              <LoadingScreen />
+            ) : (
+              <div className="flex justify-start">
+                <Button
+                  onClick={handleCreateChannel}
+                  className="bg-teal-600 hover:bg-teal-500"
+                >
+                  Create Channel
+                </Button>
+              </div>
+            )}
           </Card>
         </div>
       </SidebarInset>

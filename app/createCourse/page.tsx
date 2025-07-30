@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -13,6 +12,7 @@ import { createNewCourse } from "@/services/courseUnitData";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { classifyCourse } from "@/utils/classify";
+import LoadingScreen from "@/components/loading";
 
 export default function CreateCoursePage() {
   const [course, setCourse] = useState<Course>({
@@ -21,6 +21,7 @@ export default function CreateCoursePage() {
   });
   const router = useRouter();
   const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -35,9 +36,21 @@ export default function CreateCoursePage() {
       return;
     }
 
-    try {
-      const tags = await classifyCourse(course.name);
+    if (course.name.length > 100) {
+      alert(`Course name must be less than ${100} characters.`);
+      return;
+    }
 
+    if (course.description && course.description.length > 1000) {
+      alert(
+        `Course description must be less than ${1000} characters.`
+      );
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const tags = await classifyCourse(course.name);
       if ("tags" in tags && tags.tags.length > 0) {
         console.log(tags.tags);
         if (course.picUrl && course.picUrl.startsWith("blob:")) {
@@ -54,6 +67,7 @@ export default function CreateCoursePage() {
           tags.tags
         );
         console.log(uploadedCourse);
+        setLoading(false);
         router.push(`/manageCourse/${id}`);
       } else {
         console.warn("Classification failed");
@@ -73,11 +87,11 @@ export default function CreateCoursePage() {
       }
     >
       <AppSidebar variant="inset" />
-      <SidebarInset className="p-6 space-y-6 bg-zinc-950 min-h-screen">
-        <div className="py-12 space-y-6 px-6 bg-zinc-950 min-h-screen">
+      <SidebarInset className="p-6 space-y-6 min-h-screen">
+        <div className="py-12 space-y-6 px-6 min-h-screen">
           <h1 className="text-white text-2xl font-bold">Create a Course</h1>
 
-          <div className="space-y-4 bg-zinc-900 rounded-xl p-6">
+          <div className="space-y-4 bg-[var(--card)] rounded-xl p-6">
             <div className="flex items-center space-x-4">
               {course.picUrl ? (
                 <Image
@@ -85,7 +99,7 @@ export default function CreateCoursePage() {
                   alt="Course Image"
                   width={96}
                   height={96}
-                  className="rounded-full border border-zinc-700 object-cover"
+                  className="rounded-full border border-zinc-600 object-cover"
                 />
               ) : (
                 <div className="w-24 h-24 rounded-full bg-zinc-800 flex items-center justify-center text-white">
@@ -98,18 +112,19 @@ export default function CreateCoursePage() {
                   type="file"
                   accept="image/*"
                   onChange={handleImageChange}
-                  className="hidden"
+                  className="hidden bg-zinc-800"
                 />
               </label>
             </div>
 
             <div className="flex flex-col space-y-2">
               <label className="text-white text-sm">Course Name</label>
-              <Input
+              <input
+                type="text"
                 value={course.name}
                 onChange={(e) => setCourse({ ...course, name: e.target.value })}
                 placeholder="Enter course name"
-                className="text-white"
+                className="text-white bg-zinc-900 border border-zinc-600 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-zinc-500"
               />
             </div>
 
@@ -125,10 +140,16 @@ export default function CreateCoursePage() {
                 className="bg-zinc-900 border border-zinc-600 text-white rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-zinc-500"
               />
             </div>
-
-            <Button onClick={handleCreate} className="mt-4">
-              Create Course
-            </Button>
+            {loading ? (
+              <LoadingScreen />
+            ) : (
+              <Button
+                onClick={handleCreate}
+                className="mt-4 bg-teal-600 hover:bg-teal-500"
+              >
+                Create Course
+              </Button>
+            )}
           </div>
         </div>
       </SidebarInset>

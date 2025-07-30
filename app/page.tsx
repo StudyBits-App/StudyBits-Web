@@ -6,13 +6,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/authContext";
-import { getAllLearningCourseIds } from "@/services/courseUnitData";
+import {
+  getAllLearningCourseIds,
+  getCoursesWithMostViews,
+} from "@/services/courseUnitData";
+import { Course } from "@/utils/interfaces";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function HomepPage() {
   const { user } = useAuth();
   const [learningCourses, setLearningCourses] = useState<string[] | null>(null);
+  const [trendingCourses, setTrendingCourses] = useState<Course[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const router = useRouter();
 
@@ -22,7 +27,8 @@ export default function HomepPage() {
       try {
         const data = await getAllLearningCourseIds(user.uid);
         setLearningCourses(data);
-        console.log(data);
+        const trending = await getCoursesWithMostViews(10);
+        setTrendingCourses(trending);
       } catch (error) {
         console.error("Failed to fetch channel data", error);
       }
@@ -45,8 +51,8 @@ export default function HomepPage() {
       }
     >
       <AppSidebar variant="inset" />
-      <SidebarInset className="p-6 space-y-6 bg-zinc-950 min-h-screen">
-        <Card className="bg-zinc-900 border border-zinc-800">
+      <SidebarInset className="p-6 space-y-6 min-h-screen">
+        <Card className="bg-[var(--card)] border border-zinc-800">
           <CardContent className="p-4">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <h1 className="text-2xl font-semibold text-white">
@@ -64,7 +70,7 @@ export default function HomepPage() {
                   placeholder="Search courses..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full md:w-72 bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-400"
+                  className="w-full md:w-72 bg-[var(--card)] border border-zinc-700 text-white placeholder-zinc-400"
                 />
                 <button
                   type="submit"
@@ -77,22 +83,37 @@ export default function HomepPage() {
           </CardContent>
         </Card>
         {learningCourses && learningCourses.length > 0 && (
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
             {learningCourses.map((courseId) => (
               <div key={courseId} className="h-full">
                 <CourseCard
                   courseId={courseId}
                   link={`/viewCourse`}
+                  channel={true}
                 />
               </div>
             ))}
           </div>
         )}
         {learningCourses?.length === 0 && (
-          <div className="w-full rounded-xl border border-zinc-800 bg-zinc-900 p-6 text-center text-zinc-400">
+          <div className="w-full rounded-xl border border-zinc-800 bg-[var(--card)] p-6 text-center text-zinc-400">
             <p className="text-sm">
               You aren&apos;t learning any courses. Pick some to get started!
             </p>
+          </div>
+        )}
+        <h1 className="text-2xl font-semibold text-white">Popular Courses</h1>
+        {trendingCourses && trendingCourses.length > 0 && (
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+            {trendingCourses.map((course) => (
+              <div key={course.key} className="h-full">
+                <CourseCard
+                  course={course}
+                  link={`/viewCourse`}
+                  channel={true}
+                />
+              </div>
+            ))}
           </div>
         )}
       </SidebarInset>

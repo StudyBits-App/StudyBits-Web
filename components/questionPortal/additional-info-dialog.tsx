@@ -34,7 +34,7 @@ export function AdditionalInfoDialog({
   }, [initialData, open]);
 
   const handleSubmit = () => {
-    if (title && content) {
+    if (content) {
       onSubmit({
         key: initialData?.key || crypto.randomUUID(),
         title,
@@ -52,7 +52,7 @@ export function AdditionalInfoDialog({
         <DialogHeader>
           <DialogTitle className="text-2xl">Additional Info</DialogTitle>
         </DialogHeader>
-
+        <h2>Additional information must have content</h2>
         <div className="space-y-4 mt-4">
           <div>
             <h1 className="mb-1 font-medium">Title</h1>
@@ -87,7 +87,9 @@ export function AdditionalInfoDialog({
               {image && (
                 <div className="space-y-2">
                   {typeof image === "string" ? (
-                    <p className="text-sm text-zinc-400">Current: From upload </p>
+                    <p className="text-sm text-zinc-400">
+                      Current: From upload{" "}
+                    </p>
                   ) : (
                     <p className="text-sm text-zinc-400">
                       Selected:{" "}
@@ -113,16 +115,10 @@ export function AdditionalInfoDialog({
           <div>
             <h1 className="mb-1 font-medium">Content</h1>
             <textarea
-              className="bg-zinc-800 border border-zinc-600 text-white rounded-md w-full p-2 resize-none min-h-[80px] focus:outline-none focus:ring-2 focus:ring-zinc-500"
+              className="bg-zinc-800 border border-zinc-600 text-white rounded-md w-full p-2 resize-none h-50 overflow-y-auto focus:outline-none focus:ring-2 focus:ring-zinc-500"
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Enter content"
-              rows={1}
-              onInput={(e) => {
-                const target = e.target as HTMLTextAreaElement;
-                target.style.height = "auto";
-                target.style.height = `${target.scrollHeight}px`;
-              }}
             />
           </div>
           <Button onClick={handleSubmit} className="bg-white text-black">

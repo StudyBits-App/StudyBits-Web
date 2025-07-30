@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
-import { Input } from "@/components/ui/input";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import {
   IconPlus,
@@ -62,6 +61,25 @@ export default function QuestionPortal() {
   const params = useParams();
   const idParam = params?.id;
   const router = useRouter();
+  const questionRef = useRef<HTMLTextAreaElement | null>(null);
+  const answerRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
+
+  useEffect(() => {
+    if (questionRef.current) {
+      questionRef.current.style.height = "auto";
+      questionRef.current.style.height = `${questionRef.current.scrollHeight}px`;
+    }
+  }, [question]);
+
+  useEffect(() => {
+    answers.forEach((ans) => {
+      const ref = answerRefs.current[ans.key];
+      if (ref) {
+        ref.style.height = "auto";
+        ref.style.height = `${ref.scrollHeight}px`;
+      }
+    });
+  }, [answers]);
 
   useEffect(() => {
     if (Array.isArray(idParam) && idParam.length === 2) {
@@ -184,7 +202,12 @@ export default function QuestionPortal() {
 
   const handleSubmit = async () => {
     const hasCorrectAnswer = answers.some((answer) => answer.answer);
-    if (!question.trim() || answers.length < 2 || !hasCorrectAnswer) return;
+    if (!question.trim() || answers.length < 2 || !hasCorrectAnswer) {
+      alert(
+        "Please ensure you have a question, at least two answer choices, and one correct answer."
+      );
+      return;
+    }
     let status: "error" | { status: "success"; id: string } = "error";
     if (selectedCourse && selectedUnit) {
       if (id === "") {
@@ -195,7 +218,6 @@ export default function QuestionPortal() {
           answers,
           course: selectedCourse.key,
           unit: selectedUnit.key,
-          id: "",
         });
       } else {
         const editingQuestion: EditingQuestion = {
@@ -251,6 +273,9 @@ export default function QuestionPortal() {
         setFinal(true);
       }
     }
+    else {
+      alert("Please select a course and unit before saving as draft.");
+    }
   };
 
   const handleEditingDraft = async () => {
@@ -275,6 +300,8 @@ export default function QuestionPortal() {
       if (status === "success") {
         setFinal(true);
       }
+    }else {
+      alert("Please select a course and unit before saving as draft.");
     }
   };
 
@@ -320,10 +347,10 @@ export default function QuestionPortal() {
       }
     >
       <AppSidebar variant="inset" />
-      <SidebarInset className="p-6 space-y-4 bg-zinc-950 min-h-screen">
+      <SidebarInset className="p-6 space-y-4 min-h-screen">
         <div
           className={
-            "inline-block px-3 py-1 rounded-md text-sm font-medium bg-zinc-800 text-zinc-300"
+            "inline-block px-3 py-1 rounded-md text-sm font-medium bg-[var(--card)] text-white"
           }
         >
           {questionType === "publish"
@@ -333,17 +360,24 @@ export default function QuestionPortal() {
             : "Unsaved"}
         </div>
 
-        <div className="bg-zinc-900 rounded-2xl shadow-md p-4">
+        <div className="bg-[var(--card)] rounded-2xl shadow-md p-4">
           <h1 className="text-xl font-semibold text-white mb-2">Question</h1>
-          <Input
-            className="bg-zinc-800 text-white placeholder-zinc-400 border-zinc-700"
+          <textarea
+            ref={questionRef}
+            className="bg-zinc-800 text-white placeholder-zinc-400 border border-zinc-700 rounded-md p-2 w-full resize-none overflow-hidden focus:outline-none focus:ring-2 focus:ring-zinc-500"
             value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Type something..."
+            onChange={(e) => {
+              setQuestion(e.target.value);
+              const el = e.target;
+              el.style.height = "auto";
+              el.style.height = `${el.scrollHeight}px`;
+            }}
+            placeholder="Type your question here..."
+            rows={1}
           />
         </div>
 
-        <div className="bg-zinc-900 rounded-2xl shadow-md p-4 flex items-center justify-between">
+        <div className="bg-[var(--card)] rounded-2xl shadow-md p-4 flex items-center justify-between">
           <h1 className="text-xl font-semibold text-white">Course & Unit</h1>
           <IconPencil
             className="w-10 h-10 text-white cursor-pointer"
@@ -359,7 +393,7 @@ export default function QuestionPortal() {
         </div>
 
         {selectedCourse && selectedUnit && (
-          <div className="flex items-center gap-4 bg-zinc-900 p-3 rounded-md border border-zinc-700">
+          <div className="flex items-center gap-4 bg-[var(--card)] rounded-2xl border border-zinc-700 p-4">
             <div>
               <p className="text-lg font-semibold text-white">
                 {selectedCourse.name}
@@ -369,7 +403,7 @@ export default function QuestionPortal() {
           </div>
         )}
 
-        <div className="bg-zinc-900 rounded-2xl shadow-md p-4 flex items-center justify-between">
+        <div className="bg-[var(--card)] rounded-2xl shadow-md p-4 flex items-center justify-between">
           <h1 className="text-xl font-semibold text-white">Additional Info</h1>
           <IconPlus
             className="w-10 h-10 text-white cursor-pointer"
@@ -380,7 +414,7 @@ export default function QuestionPortal() {
         {hints.map((hint) => (
           <div
             key={hint.key}
-            className="bg-zinc-900 text-white rounded-xl shadow-md p-4 relative space-y-3"
+            className="bg-[var(--card)] text-white rounded-xl shadow-md p-4 relative space-y-3"
           >
             <button
               onClick={() => {
@@ -402,7 +436,9 @@ export default function QuestionPortal() {
             </button>
 
             {hint.title && (
-              <h2 className="text-lg font-semibold">{hint.title}</h2>
+              <h2 className="text-lg font-semibold whitespace-pre-wrap break-words">
+                {hint.title}
+              </h2>
             )}
 
             {hint.image && (
@@ -418,7 +454,9 @@ export default function QuestionPortal() {
               />
             )}
             {hint.content && (
-              <p className="text-sm text-zinc-300">{hint.content}</p>
+              <p className="text-sm text-zinc-300 whitespace-pre-wrap break-words">
+                {hint.content}
+              </p>
             )}
           </div>
         ))}
@@ -433,7 +471,7 @@ export default function QuestionPortal() {
           initialData={editingHint}
         />
 
-        <div className="bg-zinc-900 rounded-2xl shadow-md p-4 flex items-center justify-between">
+        <div className="bg-[var(--card)] rounded-2xl shadow-md p-4 flex items-center justify-between">
           <h1 className="text-xl font-semibold text-white">Answer Choices</h1>
           <IconPlus
             className="w-10 h-10 text-white cursor-pointer"
@@ -444,13 +482,22 @@ export default function QuestionPortal() {
         {answers.map((ans, index) => (
           <div
             key={ans.key}
-            className="bg-zinc-900 rounded-xl p-4 shadow-sm flex items-center justify-between space-x-4"
+            className="bg-[var(--card)] rounded-xl p-4 shadow-sm flex items-center justify-between space-x-4"
           >
-            <Input
-              className="bg-zinc-900 text-white placeholder-zinc-400 border-zinc-600 flex-1"
+            <textarea
+              ref={(el) => {
+                answerRefs.current[ans.key] = el;
+              }}
+              className="bg-[var(--card)] text-white placeholder-zinc-400 border border-zinc-600 rounded-md p-2 w-full resize-none overflow-hidden focus:outline-none focus:ring-2 focus:ring-zinc-500"
               placeholder={`Answer Choice ${index + 1}`}
               value={ans.content}
-              onChange={(e) => updateContent(ans.key, e.target.value)}
+              onChange={(e) => {
+                updateContent(ans.key, e.target.value);
+                const el = e.target;
+                el.style.height = "auto";
+                el.style.height = `${el.scrollHeight}px`;
+              }}
+              rows={1}
             />
             <div className="flex space-x-2">
               <button

@@ -20,6 +20,9 @@ export default function ChannelPage() {
       if (!user?.uid) return;
       try {
         const data = await getChannelData(user.uid);
+        if(data === null) {
+          router.push("/createChannel");
+        }
         setChannel(data);
       } catch (error) {
         console.error("Failed to fetch channel data", error);
@@ -39,36 +42,26 @@ export default function ChannelPage() {
       }
     >
       <AppSidebar variant="inset" />
-      <SidebarInset className="p-6 space-y-6 bg-zinc-950 min-h-screen">
+      <SidebarInset className="p-6 space-y-6 min-h-screen">
         {channel && (
           <>
             <ChannelDisplay
               channel={channel}
               onPlusClick={() => router.push("/createCourse")}
+              onManageCourseClick={() => router.push("/manageQuestions")}
             />
 
             {channel.courses?.length > 0 && (
-              <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                 {channel.courses.map((courseId) => (
                   <div key={courseId} className="h-full">
-                    <CourseCard
-                      courseId={courseId}
-                      link="/manageCourse"
-                    />
+                    <CourseCard courseId={courseId} link="/manageCourse" />
                   </div>
                 ))}
               </div>
             )}
           </>
         )}
-        <div className="w-full mt-10 bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex justify-center">
-          <button
-            onClick={() => router.push("/manageQuestions")}
-            className="text-white px-6 py-2 rounded-lg font-medium hover:bg-zinc-700 transition"
-          >
-            Manage Questions
-          </button>
-        </div>
       </SidebarInset>
     </SidebarProvider>
   );

@@ -25,7 +25,7 @@ export function useUserChannel(channelId: string | null) {
         const docRef = doc(db, "channels", user.uid);
         const docSnap = await getDoc(docRef);
 
-        setHasChannel(docSnap.exists() && docSnap.id === channelId);
+        setHasChannel(docSnap.exists());
       } catch (err) {
         console.error("Error checking channel:", err);
         setHasChannel(false);

@@ -34,7 +34,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { deleteLearning } from "@/services/deleteCourseUnitData";
 import { CourseDialog } from "@/components/course-unit-selector";
 import { cacheSubscribedCourses } from "@/services/cacheServices";
-import { isPageRefresh, useOnRefresh } from "@/utils/onRefresh";
+import { useOnRefresh } from "@/utils/onRefresh";
 
 export default function ViewCoursesPage() {
   const { id } = useParams();
@@ -74,13 +74,6 @@ export default function ViewCoursesPage() {
         setIsSwitchOn(useUnits);
         setStudyingUnits(studyingUnits);
 
-        const subCourses = await getSubscribedCourses(id);
-        setSubscribedCourses(subCourses);
-
-        if (!isPageRefresh()) {
-          const isSub = await checkIfSubscribed(id);
-          setSubscribedTo(isSub);
-        }
       } catch (err) {
         console.error("Error loading course:", err);
       }
@@ -93,7 +86,10 @@ export default function ViewCoursesPage() {
     const refreshSub = async () => {
       try {
         await cacheSubscribedCourses(user?.uid as string);
+        const subCourses = await getSubscribedCourses(id as string);
+        setSubscribedCourses(subCourses);
         const isSub = await checkIfSubscribed(id as string);
+        setSubscribedTo(isSub);
         setSubscribedTo(isSub);
       } catch (err) {
         console.log("Error getting sub status:", err);
@@ -182,9 +178,9 @@ export default function ViewCoursesPage() {
     >
       <AppSidebar variant="inset" />
 
-      <SidebarInset className="p-6 bg-zinc-950 min-h-screen">
+      <SidebarInset className="p-6 min-h-screen overflow-x-hidden">
         <div className="w-full space-y-6">
-          <Card className="bg-zinc-900 border border-zinc-800">
+          <Card className="bg-[var(--card)] border border-zinc-800">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <h1 className="text-lg font-semibold text-white">
@@ -231,11 +227,11 @@ export default function ViewCoursesPage() {
             </div>
 
             {units.length > 0 ? (
-              <div className="space-y-3 rounded-lg bg-zinc-900 p-4 w-full">
+              <div className="space-y-3 rounded-lg bg-[var(--card)] p-4 w-full">
                 {units.map((unit) => (
                   <div
                     key={unit.key}
-                    className="flex items-start gap-4 bg-zinc-900 rounded-xl p-4 shadow-sm border border-zinc-800"
+                    className="flex items-start gap-4 bg-[var(--card)] rounded-xl p-4 shadow-sm border border-zinc-600"
                   >
                     {studiedCourse && isSwitchOn && (
                       <button
@@ -287,7 +283,7 @@ export default function ViewCoursesPage() {
               onUnitSelect={handleCourseSelect}
               courseOnly={true}
               type={"learning"}
-              cache = {false}
+              cache={false}
             />
           )}
         </div>

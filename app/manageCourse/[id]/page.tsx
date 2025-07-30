@@ -110,7 +110,7 @@ export default function ManageCoursePage() {
       };
       const tags = await classifyUnit(unit.name);
       if ("tags" in tags && tags.tags.length > 0) {
-        await saveUnit(id, cleanUnit, tags.tags);
+      await saveUnit(id, cleanUnit, []);
       }
     }
 
@@ -134,9 +134,9 @@ export default function ManageCoursePage() {
       }
     >
       <AppSidebar variant="inset" />
-      <SidebarInset className="p-6 space-y-6 bg-zinc-950 min-h-screen">
+      <SidebarInset className="p-6 space-y-6 min-h-screen overflow-x-hidden">
         <div className="max-w-6xl w-full mx-auto px-6 my-6 space-y-6">
-          <Card className="bg-zinc-900 border border-zinc-800">
+          <Card className="bg-[var(--card)]">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <h1 className="text-lg font-semibold text-white">
@@ -153,7 +153,7 @@ export default function ManageCoursePage() {
 
           <CourseDisplay courseId={id as string} />
 
-          <div className="bg-zinc-900 rounded-2xl shadow-md p-4 flex items-center justify-between">
+          <div className="bg-[var(--card)] rounded-2xl shadow-md p-4 flex items-center justify-between">
             <h1 className="text-xl font-semibold text-white w-1/3">Units</h1>
 
             <div className="flex justify-center w-1/3">
@@ -181,11 +181,11 @@ export default function ManageCoursePage() {
           {units.map((unit) => (
             <div
               key={unit.key}
-              className="bg-zinc-900 rounded-xl p-4 shadow-sm flex flex-col space-y-4"
+              className="bg-[var(--card)] rounded-xl p-4 shadow-sm flex flex-col space-y-4"
             >
               <div className="flex items-center space-x-2">
                 <Input
-                  className="bg-zinc-900 text-white placeholder-zinc-400 border-zinc-600 flex-1"
+                  className="bg-[var(--card)] text-white placeholder-zinc-400 border-zinc-600 flex-1"
                   value={unit.name}
                   placeholder="Unit name"
                   onChange={(e) =>
@@ -202,17 +202,12 @@ export default function ManageCoursePage() {
               </div>
 
               <textarea
-                className="bg-zinc-900 border border-zinc-600 text-white rounded-md w-full p-2 resize-none min-h-[80px] focus:outline-none focus:ring-2 focus:ring-zinc-500"
+                className="bg-[var(--card)] border border-zinc-600 text-white rounded-md w-full p-2 resize-none min-h-[80px] focus:outline-none focus:ring-2 focus:ring-zinc-500"
                 value={unit.description}
                 onChange={(e) =>
                   updateUnitField(unit.key, "description", e.target.value)
                 }
                 placeholder="Unit description"
-                onInput={(e) => {
-                  const target = e.target as HTMLTextAreaElement;
-                  target.style.height = "auto";
-                  target.style.height = `${target.scrollHeight}px`;
-                }}
               />
             </div>
           ))}

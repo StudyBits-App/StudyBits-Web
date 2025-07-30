@@ -13,73 +13,87 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { signIn, signInWithGoogle } from "@/firebase/firebaseAuth";
+import { signInWithGoogle, signUp } from "@/firebase/firebaseAuth";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/compat/router";
+import LoadingScreen from "@/components/loading";
 
-export default function SigninPage() {
+export default function SignupPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmedPassword, setConfirmedPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const [displayError, setDisplayError] = useState("");
   const router = useRouter();
 
-  const signInUsernamePassword = async () => {
-    try {
-      await signIn(username, password);
-      router.push("/");
-    } catch (error) {
-      console.error(error);
-      if (error instanceof Error) {
-        setDisplayError(error.message);
-      } else {
-        setDisplayError("Something went wrong.");
+  const createAccount = async () => {
+    if (username && password && password === confirmedPassword) {
+      try {
+        setLoading(true);
+        await signUp(username, password);
+        if (router) router.push("/");
+      } catch (error) {
+        console.error(error);
+        if (error instanceof Error) {
+          setDisplayError(error.message);
+        } else {
+          setDisplayError("Something went wrong.");
+        }
+      } finally {
+        setLoading(false);
+        if (router) router.push("/");
       }
     }
   };
 
   const googleSignIn = async () => {
     try {
+      setLoading(true);
       await signInWithGoogle();
-      router.push("/");
+      if (router) router.push("/");
     } catch (error) {
       console.error(error);
     } finally {
+      setLoading(false);
     }
   };
 
+  if (loading) return <LoadingScreen />;
+
   return (
-    <div className="flex min-h-screen items-center justify-center dark">
+    <div className="flex min-h-screen w-full items-center justify-center">
       <div className="grid w-150 gap-6">
-        <div className="flex flex-col items-center gap-4 text-center">
-          {displayError && <p className="text-red-50">{displayError}</p>}
-          <h1 className="text-3xl font-bold text-white">
-            Welcome to StudyBits
-          </h1>
+        <div className="flex flex-col items-center gap-2 text-center">
+          <div className="flex items-center gap-2 text-2xl font-semibold">
+            <span>StudyBits</span>
+          </div>
+          <h1 className="text-3xl font-bold text-white">Create an account</h1>
           <p className="text-muted-foreground">
-            Sign in to get started!
+            Enter your information to get started
           </p>
+
+          {displayError && <p className="text-red-50">{displayError}</p>}
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Login</CardTitle>
+            <CardTitle>Sign Up</CardTitle>
             <CardDescription>
-              Don&apos;t have an account?{" "}
+              Already have an account?{" "}
               <Link
-                href="/signup"
-                className="underline underline-offset-2"
+                href="/signin"
+                className="underline underline-offset-2 hover:text-primary"
               >
-                Sign up
+                Login
               </Link>
             </CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Username</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
-                id="email"
-                type="email"
+                id="username"
                 placeholder="johndoe"
                 required
                 value={username}
@@ -87,25 +101,31 @@ export default function SigninPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Password</Label>
+              <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="password123"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">Confirm Password</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                required
+                value={confirmedPassword}
+                onChange={(e) => setConfirmedPassword(e.target.value)}
+                className="border border-1 border-white"
+              />
+            </div>
           </CardContent>
 
           <CardFooter className="flex flex-col">
-            <Button
-              className="w-full bg-zinc-900 text-white hover:bg-zinc-800"
-              size="lg"
-              onClick={signInUsernamePassword}
-            >
-              Login
+            <Button className="w-full bg-zinc-900 hover:bg-zinc-800 text-white" size="lg" onClick={createAccount}>
+              Create Account
             </Button>
 
             <div className="relative my-4 w-full">
@@ -116,7 +136,8 @@ export default function SigninPage() {
             </div>
 
             <Button
-              className="w-full bg-zinc-900 text-white hover:bg-zinc-800"
+              variant="outline"
+              className="w-full text-white bg-zinc-900 hover:bg-zinc-800"
               size="lg"
               onClick={googleSignIn}
             >
@@ -139,7 +160,7 @@ export default function SigninPage() {
                 />
                 <path d="M1 1h22v22H1z" fill="none" />
               </svg>
-              Sign in with Google
+              Sign up with Google
             </Button>
           </CardFooter>
         </Card>

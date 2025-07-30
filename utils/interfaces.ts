@@ -26,6 +26,7 @@ export interface Course {
   description: string;
   lastModified: number;
   numQuestions: number;
+  numSubscribers?: number;
 }
 
 export const defaultCourse: Course = {
@@ -53,12 +54,15 @@ export interface Channel {
 }
 
 export interface Question {
-  id: string;
+  id?: string;
   question: string;
   hints: Hint[];
   answers: Answer[];
   course: string;
   unit: string;
+  likes?: number;
+  dislikes?: number;
+  views?: number;
 }
 
 export interface EditingQuestion {

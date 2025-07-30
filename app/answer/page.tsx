@@ -12,7 +12,11 @@ import {
 import { useAuth } from "@/hooks/authContext";
 import { getCourseUnitNamesFromId } from "@/services/channelHelpers";
 import { shuffleArray } from "@/utils/utils";
-import { getQuestionInfoById, incrementViews } from "@/services/answerHelpers";
+import {
+  addAnsweredQuestion,
+  getQuestionInfoById,
+  incrementViews,
+} from "@/services/answerHelpers";
 import { AnswerBottomBar } from "@/components/answer/bottom-bar";
 import { AnswerHintCard } from "@/components/answer/renderHint";
 import { AnswerChoiceCard } from "@/components/answer/renderAnswer";
@@ -21,6 +25,8 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { createCourseUnitSelector } from "@/utils/getCombination";
 import { CourseDialog } from "@/components/course-unit-selector";
+import { AllCombos } from "@/components/answer/allCombos";
+import { CorrectAnswerCelebration } from "@/components/answer/correct-answer-celebration";
 
 const AnswerPage: React.FC = () => {
   const { user } = useAuth();
@@ -43,13 +49,14 @@ const AnswerPage: React.FC = () => {
     null
   );
   const [selectedUnitName, setSelectedUnitName] = useState<string | null>(null);
-  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null); 
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [studyingCourse, setStudyingCourse] = useState<string | null>(null);
   const [studiedUnit, setStudiedUnit] = useState<string>("");
   const [courseOpen, setCourseOpen] = useState(false);
   const [selector, setSelector] = useState<Awaited<
     ReturnType<typeof createCourseUnitSelector>
   > | null>(null);
+  const [allCombosUsed, setAllCombosUsed] = useState(false);
 
   const handleUnitSelect = (course: Course, unit: Unit | null) => {
     setStudyingCourse(course.key);
@@ -161,6 +168,12 @@ const AnswerPage: React.FC = () => {
     const [, ...rest] = questionsQueue;
     const next = rest[0];
 
+    if (!next) {
+      selector?.reset?.();
+      fetchQuestions();
+      return;
+    }
+
     setQuestionsQueue(rest);
     setCurrentQuestionId(next.questionId);
     courseIdRef.current = next.courseId;
@@ -169,7 +182,9 @@ const AnswerPage: React.FC = () => {
 
   useEffect(() => {
     if (user?.uid) {
-      createCourseUnitSelector(user.uid).then(setSelector);
+      createCourseUnitSelector(user.uid, () => setAllCombosUsed(true)).then(
+        setSelector
+      );
     }
   }, [user?.uid]);
 
@@ -183,6 +198,11 @@ const AnswerPage: React.FC = () => {
 
   const handleSubmitAnswers = () => {
     setAnswersSubmitted(true);
+    addAnsweredQuestion(
+      currentQuestionId as string,
+      user?.uid as string,
+      selectedCourseId as string
+    );
     console.log("[handleSubmitAnswers] Submitted");
 
     if (courseIdRef.current && currentQuestionId) {
@@ -210,10 +230,6 @@ const AnswerPage: React.FC = () => {
     setStudiedUnit("");
   };
 
-  if (loading) {
-    return <LoadingScreen />;
-  }
-
   return (
     <SidebarProvider
       style={
@@ -225,9 +241,12 @@ const AnswerPage: React.FC = () => {
     >
       <AppSidebar variant="inset" />
 
-      <SidebarInset className="px-8 py-10 space-y-10 bg-zinc-950 min-h-screen">
+      <SidebarInset className="px-8 py-10 space-y-10 overflow-y-auto">
         <div className="space-y-6">
-          {!currentQuestionId && (
+          
+          {loading && <LoadingScreen />}
+
+          {!currentQuestionId && !loading && (
             <p className="text-center text-sm">
               Hmm... looks like you aren&apos;t studying anything. Go out and
               explore!
@@ -272,7 +291,7 @@ const AnswerPage: React.FC = () => {
                   className="text-zinc-400 hover:text-red-400 cursor-pointer text-lg"
                   onClick={handleCourseUnitReset}
                 >
-                  ×
+                  x
                 </span>
               </p>
             </div>
@@ -280,7 +299,7 @@ const AnswerPage: React.FC = () => {
 
           {selectedCourseName && !studyingCourse && (
             <div
-              className="w-fit mx-auto px-4 py-2 rounded-lg bg-zinc-900"
+              className="w-fit mx-auto px-4 py-2 rounded-lg bg-[var(--card)]"
               onClick={() => setCourseOpen(true)}
             >
               <p className="text-sm text-zinc-300 text-center">
@@ -296,8 +315,10 @@ const AnswerPage: React.FC = () => {
           )}
 
           {question && (
-            <div className="bg-zinc-900 rounded-xl p-6">
-              <h2 className="text-white">{question}</h2>
+            <div className="bg-[var(--card)] rounded-xl p-6">
+              <h2 className="text-white break-words whitespace-pre-wrap">
+                {question}
+              </h2>
             </div>
           )}
 
@@ -308,17 +329,42 @@ const AnswerPage: React.FC = () => {
           </div>
 
           {currentQuestionId && (
-            <div className="bg-zinc-900 rounded-xl p-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {answerChoices.map((answer) => (
-                  <AnswerChoiceCard
-                    key={answer.key}
-                    answer={answer}
-                    onSelect={toggleSelectedAnswer}
-                    disabled={answersSubmitted}
-                    submitted={answersSubmitted}
-                  />
-                ))}
+            <div className="bg-[var(--card)] rounded-xl p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch">
+                {(() => {
+                  const showConfetti =
+                    answersSubmitted &&
+                    answerChoices.every((a) => a.answer === a.isSelected);
+
+                  return answerChoices.map((answer, idx) => {
+                    const isCorrect =
+                      answersSubmitted && answer.isSelected && answer.answer;
+
+                    const card = (
+                      <div className="h-full w-full">
+                        <AnswerChoiceCard
+                          key={answer.key}
+                          answer={answer}
+                          onSelect={toggleSelectedAnswer}
+                          disabled={answersSubmitted}
+                          submitted={answersSubmitted}
+                        />
+                      </div>
+                    );
+
+                    return (
+                      <div key={answer.key} className="h-full w-full flex">
+                        {showConfetti && isCorrect && idx === 0 ? (
+                          <CorrectAnswerCelebration>
+                            {card}
+                          </CorrectAnswerCelebration>
+                        ) : (
+                          card
+                        )}
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             </div>
           )}
@@ -326,7 +372,7 @@ const AnswerPage: React.FC = () => {
           {currentQuestionId && (
             <div className="flex justify-end pt-4 gap-3">
               <button
-                className="bg-zinc-800 hover:bg-zinc-700 text-white px-4 h-12 rounded-xl flex items-center justify-center text-sm font-semibold transition border border-zinc-600"
+                className="bg-[var(--card)] hover:bg-zinc-700 text-white px-4 h-12 rounded-xl flex items-center justify-center text-sm font-semibold transition border border-zinc-600"
                 onClick={nextQuestion}
                 title="Skip this question"
               >
@@ -357,8 +403,9 @@ const AnswerPage: React.FC = () => {
           onOpenChange={setCourseOpen}
           onUnitSelect={handleUnitSelect}
           type={"learning"}
-          cache = {false}
+          cache={false}
         />
+        <AllCombos open={allCombosUsed} onOpenChange={setAllCombosUsed} />
       </SidebarInset>
     </SidebarProvider>
   );

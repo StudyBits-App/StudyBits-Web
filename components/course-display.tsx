@@ -18,6 +18,7 @@ export function CourseDisplay({ courseId }: CourseDisplayProps) {
     async function fetchCourse() {
       try {
         const data = await getCourseData(courseId);
+        console.log(data)
         setCourse(data);
       } catch (err) {
         console.error("Failed to fetch course:", err);
@@ -30,10 +31,10 @@ export function CourseDisplay({ courseId }: CourseDisplayProps) {
   if (!course) return <LoadingScreen />;
 
   return (
-    <Card className="w-full bg-zinc-900 rounded-xl shadow-md">
+    <Card className="w-full bg-[var(--card)] rounded-xl shadow-md">
       <CardContent className="flex items-center gap-6 p-6">
         {course.picUrl && (
-          <div className="w-24 h-24 relative rounded-full overflow-hidden shrink-0 border border-zinc-700">
+          <div className="w-24 h-24 relative rounded-full overflow-hidden shrink-0">
             <Image
               src={course.picUrl}
               alt="Course Icon"
@@ -42,13 +43,24 @@ export function CourseDisplay({ courseId }: CourseDisplayProps) {
             />
           </div>
         )}
-        <div className="flex flex-col">
-          <h1 className="text-2xl font-semibold text-white leading-tight">
+        <div className="flex flex-col w-full">
+          <h1 className="text-2xl font-semibold text-white leading-tight break-words w-full">
             {course.name}
           </h1>
-          <p className="text-sm text-zinc-400 mt-2 max-w-xl">
-            {course.description}
-          </p>
+
+          {course.description && (
+            <p className="text-sm text-zinc-400 mt-2 break-words w-full">
+              {course.description}
+            </p>
+          )}
+
+          <div className="flex items-center gap-4 mt-4 text-zinc-400 text-sm">
+            {course.numSubscribers !== undefined && (
+              <div className="flex items-center gap-1">
+                {course.numSubscribers}{" subscribers"}
+              </div>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>

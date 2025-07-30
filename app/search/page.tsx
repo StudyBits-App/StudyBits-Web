@@ -42,7 +42,7 @@ export default function ResultsPage() {
       }
     >
       <AppSidebar variant="inset" />
-      <SidebarInset className="p-6 space-y-6 bg-zinc-950 min-h-screen">
+      <SidebarInset className="p-6 space-y-6 min-h-screen">
         <div className="w-full max-w-6xl mx-auto space-y-6 text-white">
           <form onSubmit={handleSubmit}>
             <input
@@ -50,12 +50,12 @@ export default function ResultsPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search courses..."
-              className="w-full bg-zinc-900 text-white placeholder-zinc-400 px-4 py-3 rounded-md border border-zinc-700 focus:outline-none focus:ring-1 focus:ring-teal-500"
+              className="w-full bg-[var(--card)] text-white placeholder-zinc-400 px-4 py-3 rounded-md border border-zinc-700 focus:outline-none focus:ring-1 focus:ring-teal-500"
             />
           </form>
 
           {searchResults.length > 0 ? (
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
               {searchResults.map((id) => (
                 <CourseCard
                   key={id}

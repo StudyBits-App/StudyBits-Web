@@ -2,7 +2,12 @@
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
-import { IconPencil, IconTrash } from "@tabler/icons-react";
+import {
+  IconPencil,
+  IconThumbDown,
+  IconThumbUp,
+  IconTrash,
+} from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { Course, Question, Unit } from "@/utils/interfaces";
 import {
@@ -55,12 +60,11 @@ export default function ManageQuestionsPage() {
     router.push(`/questionPortal/publish/${questionId}`);
   };
 
-const handleUnitSelect = (course: Course, unit: Unit | null) => {
-  if (!unit) return;
-  setCourseId(course.key);
-  setUnitId(unit.key);
-};
-
+  const handleUnitSelect = (course: Course, unit: Unit | null) => {
+    if (!unit) return;
+    setCourseId(course.key);
+    setUnitId(unit.key);
+  };
 
   const renderQuestionList = (
     questions: Question[],
@@ -72,20 +76,42 @@ const handleUnitSelect = (course: Course, unit: Unit | null) => {
       {questions.length > 0 ? (
         questions.map((question) => (
           <div
-            key={question.id}
-            className="bg-zinc-900 rounded-xl p-4 shadow-sm flex items-center justify-between space-x-4"
+            key={question.id as string}
+            className="bg-[var(--card)] rounded-xl p-4 shadow-sm flex items-center justify-between space-x-4"
           >
-            <div className="flex-1">
-              <p className="text-white text-sm truncate max-w-xl">
+            <div className="flex-1 overflow-hidden max-w-full">
+              <p className="text-white text-sm break-words whitespace-pre-wrap overflow-hidden line-clamp-3">
                 {question.question}
               </p>
+
+              <div className="flex items-center gap-4 mt-2 text-zinc-400 text-xs">
+                {question.likes !== undefined && (
+                  <div className="flex items-center gap-1">
+                    <IconThumbUp className="w-4 h-4" />
+                    <span>{question.likes}</span>
+                  </div>
+                )}
+                {question.dislikes !== undefined && (
+                  <div className="flex items-center gap-1">
+                    <IconThumbDown className="w-4 h-4" />
+                    <span>{question.dislikes}</span>
+                  </div>
+                )}
+                {question.views !== undefined && (
+                  <div className="flex items-center gap-1">
+                    <IconPencil className="w-4 h-4" />
+                    <span>{question.views}</span>
+                  </div>
+                )}
+              </div>
             </div>
+
             <div className="flex space-x-2">
               <button
                 onClick={() =>
                   isDraft
-                    ? draftEditRedirect(question.id)
-                    : publishEditRedirect(question.id)
+                    ? draftEditRedirect(question.id as string)
+                    : publishEditRedirect(question.id as string)
                 }
                 className="p-2 rounded-lg bg-zinc-600 hover:bg-zinc-500"
                 title="Edit Question"
@@ -97,14 +123,14 @@ const handleUnitSelect = (course: Course, unit: Unit | null) => {
                   deleteQuestionFromUnit(
                     courseId as string,
                     unitId as string,
-                    question.id,
+                    question.id as string,
                     isDraft
                   )
                 }
                 className="p-2 bg-red-600 hover:bg-red-700 rounded-lg"
                 title="Delete Question"
               >
-                <IconTrash />
+                <IconTrash className="w-5 h-5 text-white" />
               </button>
             </div>
           </div>
@@ -127,8 +153,8 @@ const handleUnitSelect = (course: Course, unit: Unit | null) => {
       }
     >
       <AppSidebar variant="inset" />
-      <SidebarInset className="p-6 space-y-6 bg-zinc-950 min-h-screen">
-        <div className="bg-zinc-900 rounded-xl p-4 shadow-sm flex justify-between items-center">
+      <SidebarInset className="p-6 space-y-6 min-h-screen overflow-y-auto">
+        <div className="bg-[var(--card)] rounded-xl p-4 shadow-sm flex justify-between items-center">
           <h1 className="text-2xl font-semibold text-white">
             Manage Questions
           </h1>
@@ -146,7 +172,7 @@ const handleUnitSelect = (course: Course, unit: Unit | null) => {
             {renderQuestionList(questionsDrafts, true, "Draft Questions")}
           </>
         ) : (
-          <div className="bg-zinc-900 rounded-xl p-4 shadow-sm">
+          <div className="bg-[var(--card)] rounded-xl p-4 shadow-sm">
             <p className="text-zinc-400">Please select a course and unit.</p>
           </div>
         )}

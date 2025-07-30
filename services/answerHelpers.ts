@@ -278,3 +278,15 @@ export const incrementViews = async (
     throw error;
   }
 };
+
+export const addAnsweredQuestion = async (questionId: string, uid: string, selectedCourse: string): Promise<void> => {
+  try {
+    const userCourseDoc = doc(db, "learning", uid, "courses", selectedCourse);
+    await updateDoc(userCourseDoc, {
+      answeredQuestions: arrayUnion(questionId),
+    });
+  } catch (error) {
+    console.error("Error adding answered question:", error);
+    throw error;
+  }
+}

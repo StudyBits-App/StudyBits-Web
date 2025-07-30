@@ -21,6 +21,7 @@ import {
 import { Channel, QuestionInfo } from "@/utils/interfaces";
 import { getChannelFromCourse } from "@/services/channelHelpers";
 import { formatCount } from "@/utils/utils";
+import { cacheSubscribedCourses } from "@/services/cacheServices";
 
 interface AnswerBottomBarProps {
   questionId: string;
@@ -93,6 +94,10 @@ export function AnswerBottomBar({
       loadInfo();
     }
   }, [questionId, user?.uid, fetchEngagementData]);
+
+  useEffect(() => {
+    cacheSubscribedCourses(user?.uid as string)
+  }, [user?.uid]);
 
   const handleLike = async () => {
     if (!user?.uid || !questionInfo) return;
@@ -167,7 +172,7 @@ export function AnswerBottomBar({
   if (!questionInfo) return null;
 
   return (
-    <div className="w-full bg-zinc-900 border-t border-zinc-800 px-4 py-4 rounded-xl shadow flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-zinc-300">
+    <div className="w-full bg-[var(--card)] border-t border-zinc-800 px-4 py-4 rounded-xl shadow flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-zinc-300">
       <div className="flex items-center gap-3 flex-wrap min-w-[180px]">
         {channel?.profilePicURL && (
           <Image
@@ -215,7 +220,7 @@ export function AnswerBottomBar({
           {subscribed ? "Subscribed" : "Subscribe"}
         </Button>
       </div>
-      
+
       <div className="flex items-center gap-1 text-zinc-400 min-w-[80px] justify-end">
         <IconPencil size={30} className="text-zinc-500" />
         <span>{formatCount(viewCount)}</span>

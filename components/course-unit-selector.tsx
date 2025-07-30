@@ -110,7 +110,7 @@ export function CourseDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-zinc-900 border-zinc-700 text-white max-w-3xl w-full">
+      <DialogContent className="bg-zinc-900 border-zinc-700 text-white max-w-3xl w-full max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl">Courses</DialogTitle>
         </DialogHeader>

@@ -5,6 +5,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  limit,
   orderBy,
   query,
   setDoc,
@@ -214,3 +215,21 @@ export async function fetchChannelCoursesAndUnits(uid: string): Promise<{
     return { courses: [], unitMap: {} };
   }
 }
+
+export const getCoursesWithMostViews = async (
+  maxResults: number = 10
+): Promise<Course[]> => {
+  try {
+    const coursesRef = collection(db, "courses");
+    const q = query(coursesRef, orderBy("views", "desc"), limit(maxResults));
+    const snapshot = await getDocs(q);
+
+    return snapshot.docs.map((doc) => ({
+      ...doc.data(),
+      key: doc.id,
+    })) as Course[];
+  } catch (error) {
+    console.error("Error fetching courses with most views:", error);
+    return [];
+  }
+};

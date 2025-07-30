@@ -16,7 +16,10 @@ type SuccessResponse = [RawQuestionMetadata, string, string];
 type ErrorResponse = { error: true; message: string };
 type ApiResponseResult = SuccessResponse | ErrorResponse;
 
-export async function createCourseUnitSelector(uid: string) {
+export async function createCourseUnitSelector(
+  uid: string,
+  exhaustedCallback: () => void
+) {
   const original: Combo[] = [];
 
   try {
@@ -26,6 +29,14 @@ export async function createCourseUnitSelector(uid: string) {
     snapshot.forEach((doc) => {
       const data = doc.data();
       const units = data?.useUnits ? data?.studyingUnits || [] : [""];
+
+      if (
+        !units ||
+        units.length === 0 ||
+        (units.length === 1 && units[0] === "")
+      )
+        return;
+
       units.forEach((unitId: string) => {
         original.push({ courseId: doc.id, unitId });
       });
@@ -49,6 +60,7 @@ export async function createCourseUnitSelector(uid: string) {
     }
 
     index = 0;
+    exhaustedCallback();
     console.log("[Selector Reset] Shuffled again:", original);
   };
 
@@ -60,12 +72,8 @@ export async function createCourseUnitSelector(uid: string) {
       };
     }
 
-    if (index >= original.length) {
-      console.log("[Selector] All combos exhausted. Resetting...");
-      reset();
-    }
-
     const combo = original[index];
+    console.log(combo.courseId);
     console.log(
       `[Selector] Trying combo ${index + 1}/${original.length}:`,
       combo.courseId,

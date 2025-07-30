@@ -57,7 +57,7 @@ export async function cacheSubscribedCourses(uid: string) {
     snapshot.forEach((doc) => {
       const baseCourseId = doc.id;
       const data = doc.data();
-      const subscribed: unknown = data.subscribed;
+      const subscribed: unknown = data.subscribedCourses;
 
       if (Array.isArray(subscribed)) {
         for (const subscribedCourseId of subscribed) {

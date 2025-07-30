@@ -45,7 +45,7 @@ export default function ChannelPage() {
       }
     >
       <AppSidebar variant="inset" />
-      <SidebarInset className="p-6 space-y-6 bg-zinc-950 min-h-screen">
+      <SidebarInset className="p-6 space-y-6 min-h-screen">
         {channel && (
           <>
             <ChannelDisplay channel={channel} />
