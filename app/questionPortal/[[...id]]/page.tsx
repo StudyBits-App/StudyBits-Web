@@ -242,7 +242,7 @@ export default function QuestionPortal() {
         const tags = await classifyQuestion(status.id);
         if ("tags" in tags && tags.tags.length > 0) {
           addTagsToQuestion(status.id, tags.tags);
-          setFinal(true);
+          router.push(`/questionPortal/publish/${id}`);
         } else {
           alert(
             "Your question was saved, but there wasn an error! Save it again."
@@ -270,7 +270,7 @@ export default function QuestionPortal() {
         );
       }
       if (status === "success") {
-        setFinal(true);
+        router.push(`/questionPortal/draft/${id}`);
       }
     } else {
       alert("Please select a course and unit before saving as draft.");
@@ -525,11 +525,11 @@ export default function QuestionPortal() {
         ))}
         <FinalDialog open={final} onOpenChange={setFinal} />
         {questionType === null && (
-          <div
-            className="mt-10 flex justify-center gap-4"
-            onClick={handleNewDraft}
-          >
-            <button className="bg-zinc-100 text-black px-6 py-2 rounded-md shadow border border-gray-300 hover:bg-zinc-200 transition">
+          <div className="mt-10 flex justify-center gap-4">
+            <button
+              className="bg-zinc-100 text-black px-6 py-2 rounded-md shadow border border-gray-300 hover:bg-zinc-200 transition"
+              onClick={handleNewDraft}
+            >
               Save as Draft
             </button>
 
@@ -542,11 +542,11 @@ export default function QuestionPortal() {
           </div>
         )}
         {questionType === "draft" && (
-          <div
-            className="mt-10 flex justify-center gap-4"
-            onClick={handleEditingDraft}
-          >
-            <button className="bg-zinc-100 text-black px-6 py-2 rounded-md shadow border border-gray-300 hover:bg-zinc-200 transition">
+          <div className="mt-10 flex justify-center gap-4">
+            <button
+              className="bg-zinc-100 text-black px-6 py-2 rounded-md shadow border border-gray-300 hover:bg-zinc-200 transition"
+              onClick={handleEditingDraft}
+            >
               Save changes as Draft
             </button>
 
@@ -559,11 +559,11 @@ export default function QuestionPortal() {
           </div>
         )}
         {questionType === "publish" && (
-          <div
-            className="mt-10 flex justify-center gap-4"
-            onClick={fromPublishToDraft}
-          >
-            <button className="bg-zinc-100 text-black px-6 py-2 rounded-md shadow border border-gray-300 hover:bg-zinc-200 transition">
+          <div className="mt-10 flex justify-center gap-4">
+            <button
+              className="bg-zinc-100 text-black px-6 py-2 rounded-md shadow border border-gray-300 hover:bg-zinc-200 transition"
+              onClick={fromPublishToDraft}
+            >
               Convert to Draft
             </button>
 
