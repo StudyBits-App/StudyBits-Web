@@ -272,8 +272,7 @@ export default function QuestionPortal() {
       if (status === "success") {
         setFinal(true);
       }
-    }
-    else {
+    } else {
       alert("Please select a course and unit before saving as draft.");
     }
   };
@@ -300,7 +299,7 @@ export default function QuestionPortal() {
       if (status === "success") {
         setFinal(true);
       }
-    }else {
+    } else {
       alert("Please select a course and unit before saving as draft.");
     }
   };
@@ -414,26 +413,28 @@ export default function QuestionPortal() {
         {hints.map((hint) => (
           <div
             key={hint.key}
-            className="bg-[var(--card)] text-white rounded-xl shadow-md p-4 relative space-y-3"
+            className="bg-[var(--card)] text-white rounded-xl shadow-md p-4 relative pr-20 space-y-3"
           >
-            <button
-              onClick={() => {
-                setShowAdditionalInfoDialog(true);
-                setEditingHint(hint);
-              }}
-              className="absolute top-2 right-10 p-1 text-blue-400 hover:text-blue-200"
-              title="Edit Hint"
-            >
-              <IconPencil />
-            </button>
+            <div className="absolute top-2 right-2 flex gap-2">
+              <button
+                onClick={() => {
+                  setShowAdditionalInfoDialog(true);
+                  setEditingHint(hint);
+                }}
+                className="p-1 text-blue-400 hover:text-blue-200"
+                title="Edit Hint"
+              >
+                <IconPencil />
+              </button>
 
-            <button
-              onClick={() => deleteHint(hint.key)}
-              className="absolute top-2 right-2 p-1 text-red-400 hover:text-red-200"
-              title="Delete Hint"
-            >
-              <IconTrash />
-            </button>
+              <button
+                onClick={() => deleteHint(hint.key)}
+                className="p-1 text-red-400 hover:text-red-200"
+                title="Delete Hint"
+              >
+                <IconTrash />
+              </button>
+            </div>
 
             {hint.title && (
               <h2 className="text-lg font-semibold whitespace-pre-wrap break-words">
@@ -453,6 +454,7 @@ export default function QuestionPortal() {
                 className="w-full max-h-64 object-contain rounded-md border border-zinc-700"
               />
             )}
+
             {hint.content && (
               <p className="text-sm text-zinc-300 whitespace-pre-wrap break-words">
                 {hint.content}
