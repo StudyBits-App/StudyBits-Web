@@ -1,49 +1,5 @@
 import { db } from "@/firebase/firebase";
-import { Course, Unit } from "@/utils/interfaces";
-import { doc, getDoc, collection, getDocs } from "firebase/firestore";
-
-export async function cacheCoursesAndUnits(uid: string) {
-  for (let i = localStorage.length - 1; i >= 0; i--) {
-    const key = localStorage.key(i);
-    if (key?.startsWith("channel")) {
-      localStorage.removeItem(key);
-    }
-  }
-
-  try {
-    const channelRef = doc(db, "channels", uid);
-    const snapshot = await getDoc(channelRef);
-    const data = snapshot.data();
-    const courses = data?.courses;
-
-    for (const courseEntry of courses || []) {
-      const courseId =
-        typeof courseEntry === "string" ? courseEntry : courseEntry?.id;
-      if (!courseId) continue;
-
-      const courseRef = doc(db, "courses", courseId);
-      const courseSnap = await getDoc(courseRef);
-      if (!courseSnap.exists()) continue;
-
-      const courseData = courseSnap.data() as Course;
-      localStorage.setItem(
-        `channel-course-${courseId}`,
-        JSON.stringify(courseData)
-      );
-
-      const unitsRef = collection(db, "courses", courseId, "units");
-      const unitsSnap = await getDocs(unitsRef);
-
-      unitsSnap.forEach((unitDoc) => {
-        const unitData = unitDoc.data() as Unit;
-        const unitKey = `channel-unit-${courseId}-${unitDoc.id}`;
-        localStorage.setItem(unitKey, JSON.stringify(unitData));
-      });
-    }
-  } catch (error) {
-    console.error("Error caching courses and units:", error);
-  }
-}
+import { collection, getDocs } from "firebase/firestore";
 
 export async function cacheSubscribedCourses(uid: string) {
   try {

@@ -135,10 +135,10 @@ export default function ManageCoursePage() {
       }
     >
       <AppSidebar variant="inset" />
-      <SidebarInset className="p-6 space-y-6 min-h-screen overflow-x-hidden">
+      <SidebarInset className="p-6 min-h-screen overflow-x-hidden">
         <SiteHeader />
 
-        <div className="max-w-6xl w-full mx-auto px-6 my-6 space-y-6">
+        <div className="max-w-6xl w-full mx-auto my-6 space-y-6">
           <Card className="bg-[var(--card)]">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">

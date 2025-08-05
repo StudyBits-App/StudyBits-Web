@@ -149,10 +149,10 @@ export default function CreateCoursePage() {
       }
     >
       <AppSidebar variant="inset" />
-      <SidebarInset className="p-6 space-y-6 min-h-screen">
+      <SidebarInset className="p-6 min-h-screen">
         <SiteHeader />
 
-        <div className="py-12 space-y-6 px-6 min-h-screen">
+        <div className="py-6 space-y-6 min-h-screen">
           <h1 className="text-white text-2xl font-bold">Create a Course</h1>
 
           <div className="space-y-4 bg-[var(--card)] rounded-xl p-6">

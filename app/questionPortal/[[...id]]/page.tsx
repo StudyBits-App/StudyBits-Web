@@ -35,7 +35,6 @@ import { CourseDialog } from "@/components/course-unit-selector";
 import { FinalDialog } from "@/components/questionPortal/final-dialog";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { getCourseData, getUnitForCourse } from "@/services/courseUnitData";
-import { cacheCoursesAndUnits } from "@/services/cacheServices";
 import { classifyQuestion } from "@/utils/classify";
 import LoadingScreen from "@/components/loading";
 import { SiteHeader } from "@/components/site-header";
@@ -144,10 +143,6 @@ export default function QuestionPortal() {
     };
     handleEditing();
   }, [id, questionType, router, user]);
-
-  useEffect(() => {
-    cacheCoursesAndUnits(user?.uid as string);
-  }, [user?.uid, id]);
 
   const handleHintSubmit = (hint: Hint) => {
     setHints((prev) => {
@@ -409,7 +404,7 @@ export default function QuestionPortal() {
             onOpenChange={setCourseOpen}
             onUnitSelect={handleUnitSelect}
             type={"channel"}
-            cache={true}
+            noCourseMessage="Create a course with units to make questions."
           />
         </div>
 

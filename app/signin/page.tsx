@@ -48,16 +48,14 @@ export default function SigninPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center dark">
+    <div className="flex min-h-screen items-center justify-center">
       <div className="grid w-150 gap-6">
         <div className="flex flex-col items-center gap-4 text-center">
           {displayError && <p className="text-red-50">{displayError}</p>}
           <h1 className="text-3xl font-bold text-white">
             Welcome to StudyBits
           </h1>
-          <p className="text-muted-foreground">
-            Sign in to get started!
-          </p>
+          <p className="text-muted-foreground">Sign in to get started!</p>
         </div>
 
         <Card>
@@ -65,10 +63,7 @@ export default function SigninPage() {
             <CardTitle>Login</CardTitle>
             <CardDescription>
               Don&apos;t have an account?{" "}
-              <Link
-                href="/signup"
-                className="underline underline-offset-2"
-              >
+              <Link href="/signup" className="underline underline-offset-2">
                 Sign up
               </Link>
             </CardDescription>
@@ -76,7 +71,7 @@ export default function SigninPage() {
 
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Username</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -84,6 +79,7 @@ export default function SigninPage() {
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                className="bg-zinc-900"
               />
             </div>
             <div className="space-y-2">
@@ -95,6 +91,7 @@ export default function SigninPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="bg-zinc-900"
               />
             </div>
           </CardContent>

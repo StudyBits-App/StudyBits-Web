@@ -168,8 +168,7 @@ export function AnswerBottomBar({
         if (selectedCourseId) {
           await subscribeToCourse(courseId, selectedCourseId, user.uid);
           setSubscribed(true);
-        }
-        else{
+        } else {
           setCourseOpen(true);
         }
       }
@@ -189,45 +188,58 @@ export function AnswerBottomBar({
   if (!questionInfo) return null;
 
   return (
-    <div className="w-full bg-[var(--card)] border-t border-zinc-800 px-4 py-4 rounded-xl shadow flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-zinc-300">
-      <div className="flex items-center gap-3 flex-wrap min-w-[180px]">
+    <div className="w-full bg-[var(--card)] border-t border-zinc-800 px-3 py-3 sm:px-4 sm:py-4 rounded-xl shadow text-sm text-zinc-300">
+      <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
         {channel?.profilePicURL && (
           <Image
             src={channel.profilePicURL}
             alt="Channel Profile"
-            width={36}
-            height={36}
-            className="rounded-full border border-zinc-700 object-cover"
+            width={32}
+            height={32}
+            className="rounded-full border border-zinc-700 object-cover sm:w-9 sm:h-9"
           />
         )}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-          <span className="text-white font-medium">{channel?.displayName}</span>
-          <span className="text-zinc-400">
-            {" | "} {courseName} • {unitName}
-          </span>
+        <div className="flex-1 min-w-0">
+          <div className="text-white font-medium truncate text-sm sm:text-base">
+            {channel?.displayName}
+          </div>
+          <div className="text-zinc-400 text-xs sm:text-sm truncate">
+            {courseName} • {unitName}
+          </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-4 min-w-[120px] justify-center">
-        <button onClick={handleLike} className="flex items-center gap-1">
-          <IconThumbUp
-            size={30}
-            className={liked ? "text-cyan-400" : "text-zinc-400"}
-          />
-          <span>{formatCount(likeCount)}</span>
-        </button>
-        <button onClick={handleDislike} className="flex items-center gap-1">
-          <IconThumbDown
-            size={30}
-            className={disliked ? "text-red-400" : "text-zinc-400"}
-          />
-          <span>{formatCount(dislikeCount)}</span>
-        </button>
-      </div>
+      <div className="flex items-center justify-between gap-2 sm:gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <button onClick={handleLike} className="flex items-center gap-1">
+            <IconThumbUp
+              size={24}
+              className={`sm:w-7 sm:h-7 ${
+                liked ? "text-cyan-400" : "text-zinc-400"
+              }`}
+            />
+            <span className="text-xs sm:text-sm">{formatCount(likeCount)}</span>
+          </button>
+          <button onClick={handleDislike} className="flex items-center gap-1">
+            <IconThumbDown
+              size={24}
+              className={`sm:w-7 sm:h-7 ${
+                disliked ? "text-red-400" : "text-zinc-400"
+              }`}
+            />
+            <span className="text-xs sm:text-sm">
+              {formatCount(dislikeCount)}
+            </span>
+          </button>
+        </div>
 
-      <div className="min-w-[100px]">
+        <div className="flex items-center gap-1 text-zinc-400">
+          <IconPencil size={20} className="text-zinc-500 sm:w-6 sm:h-6" />
+          <span className="text-xs sm:text-sm">{formatCount(viewCount)}</span>
+        </div>
+
         <Button
-          className={`text-xs px-3 py-1 rounded-lg border ${
+          className={`text-xs px-2 py-1 sm:px-3 sm:py-1 rounded-lg border whitespace-nowrap ${
             subscribed
               ? "bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700"
               : "bg-white text-black border-gray-300 hover:bg-gray-100"
@@ -238,18 +250,13 @@ export function AnswerBottomBar({
         </Button>
       </div>
 
-      <div className="flex items-center gap-1 text-zinc-400 min-w-[80px] justify-end">
-        <IconPencil size={30} className="text-zinc-500" />
-        <span>{formatCount(viewCount)}</span>
-      </div>
-
       <CourseDialog
         open={courseOpen}
         onOpenChange={setCourseOpen}
         onUnitSelect={handleCourseSelect}
         courseOnly={true}
         type={"learning"}
-        cache={false}
+        noCourseMessage="You are not learning any courses. Add course formats to learn to subscribe to this course."
       />
     </div>
   );

@@ -16,7 +16,6 @@ import {
 } from "@/services/questionData";
 import { useRouter } from "next/navigation";
 import { CourseDialog } from "@/components/course-unit-selector";
-import { cacheCoursesAndUnits } from "@/services/cacheServices";
 import { useAuth } from "@/hooks/authContext";
 import { SiteHeader } from "@/components/site-header";
 
@@ -49,7 +48,6 @@ export default function ManageQuestionsPage() {
 
     if (courseId && unitId) {
       getQuestions();
-      cacheCoursesAndUnits(user?.uid as string);
     }
   }, [courseId, router, unitId, user?.uid]);
 
@@ -70,9 +68,9 @@ export default function ManageQuestionsPage() {
   const handleDelete = async (id: string, isDraft: boolean) => {
     await deleteQuestionFromUnit(courseId!, unitId!, id, isDraft);
     if (isDraft) {
-      setQuestions((prev) => prev.filter((q) => q.id !== id));
-    } else {
       setQuestionDrafts((prev) => prev.filter((q) => q.id !== id));
+    } else {
+      setQuestions((prev) => prev.filter((q) => q.id !== id));
     }
   };
 
@@ -187,7 +185,7 @@ export default function ManageQuestionsPage() {
           onOpenChange={setCourseOpen}
           onUnitSelect={handleUnitSelect}
           type={"channel"}
-          cache={true}
+          noCourseMessage="Create a course with units to make questions."
         />
       </SidebarInset>
     </SidebarProvider>

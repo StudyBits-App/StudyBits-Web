@@ -184,7 +184,7 @@ export default function ViewCoursesPage() {
         <SiteHeader />
 
         <div className="w-full space-y-6">
-          <Card className="bg-[var(--card)] border border-zinc-800">
+          <Card className="bg-[var(--card)] border border-zinc-800 mt-6">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <h1 className="text-lg font-semibold text-white">
@@ -238,35 +238,20 @@ export default function ViewCoursesPage() {
                     key={unit.key}
                   >
                     {studiedCourse && isSwitchOn && (
-                      <button
-                        onClick={() => handleUnitToggle(unit.key)}
-                        className="mt-1"
-                      >
+                      <button onClick={() => handleUnitToggle(unit.key)}>
                         {studyingUnits.includes(unit.key) ? (
-                          <IconCircleCheckFilled
-                            size={22}
-                            className="text-blue-400"
-                          />
+                          <IconCircleCheckFilled className="text-teal-400" />
                         ) : (
                           <IconCircle size={22} className="text-zinc-500" />
                         )}
                       </button>
                     )}
 
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1">
+                      <div className="flex justify-between gap-2">
                         <h2 className="text-white text-base break-words min-w-0">
                           {unit.name}
                         </h2>
-
-                        <button
-                          onClick={() =>
-                            viewQuestionsRedirect(id as string, unit.key)
-                          }
-                          className="flex-shrink-0 text-zinc-400 hover:text-teal-400 transition"
-                        >
-                          <IconQuestionMark size={20} />
-                        </button>
                       </div>
 
                       {unit.description && (
@@ -275,6 +260,15 @@ export default function ViewCoursesPage() {
                         </p>
                       )}
                     </div>
+
+                    <button
+                      onClick={() =>
+                        viewQuestionsRedirect(id as string, unit.key)
+                      }
+                      className="text-zinc-400 hover:text-teal-400 transition self-center"
+                    >
+                      <IconQuestionMark size={30} />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -298,7 +292,7 @@ export default function ViewCoursesPage() {
               onUnitSelect={handleCourseSelect}
               courseOnly={true}
               type={"learning"}
-              cache={false}
+              noCourseMessage="Add a course format to subscribe to this course. Click the plus icon at the top to learn this format or create your own format with your channel."
             />
           )}
         </div>

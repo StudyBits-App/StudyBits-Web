@@ -68,7 +68,8 @@ export async function createCourseUnitSelector(
   };
 
   const fetchApiResponse = async (): Promise<ApiResponseResult> => {
-    if (original.length === 0) {
+    if (original.length === 0 || !original[index]) {
+      console.warn("[fetchApiResponse] No combo available.");
       return {
         error: true,
         message: "No available course/unit combinations.",
@@ -162,6 +163,7 @@ export async function createCourseUnitSelector(
         {
           course_id: courseId,
           unit_id: unitId,
+          uid: uid,
         }
       );
 

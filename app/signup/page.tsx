@@ -91,23 +91,26 @@ export default function SignupPage() {
 
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username">Email</Label>
               <Input
-                id="username"
+                id="email"
                 placeholder="johndoe"
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                className="bg-zinc-900"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
+                placeholder="password123"
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="bg-zinc-900"
               />
             </div>
             <div className="space-y-2">
@@ -118,13 +121,17 @@ export default function SignupPage() {
                 required
                 value={confirmedPassword}
                 onChange={(e) => setConfirmedPassword(e.target.value)}
-                className="border border-1 border-white"
+                className="bg-zinc-900"
               />
             </div>
           </CardContent>
 
           <CardFooter className="flex flex-col">
-            <Button className="w-full bg-zinc-900 hover:bg-zinc-800 text-white" size="lg" onClick={createAccount}>
+            <Button
+              className="w-full bg-zinc-900 hover:bg-zinc-800 text-white"
+              size="lg"
+              onClick={createAccount}
+            >
               Create Account
             </Button>
 
@@ -136,7 +143,6 @@ export default function SignupPage() {
             </div>
 
             <Button
-              variant="outline"
               className="w-full text-white bg-zinc-900 hover:bg-zinc-800"
               size="lg"
               onClick={googleSignIn}

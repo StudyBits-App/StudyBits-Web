@@ -20,6 +20,7 @@ import {
   fetchLearningCoursesAndUnits,
 } from "@/services/courseUnitData";
 import { useAuth } from "@/hooks/authContext";
+import LoadingScreen from "./loading";
 
 interface CourseDialogueProps {
   open: boolean;
@@ -28,7 +29,8 @@ interface CourseDialogueProps {
   courseOnly?: boolean;
   type: string;
   channelId?: string;
-  cache: boolean;
+  allowNoUnit?: boolean;
+  noCourseMessage: string
 }
 export function CourseDialog({
   open,
@@ -36,77 +38,34 @@ export function CourseDialog({
   onUnitSelect,
   courseOnly = false,
   type,
-  cache,
+  allowNoUnit = false,
+  noCourseMessage
 }: CourseDialogueProps) {
   const [courses, setCourses] = useState<Course[]>([]);
   const [unitMap, setUnitMap] = useState<Record<string, Unit[]>>({});
+  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
   useEffect(() => {
     if (!open) return;
-    const getCache = () => {
-      const loadedCourses: Course[] = [];
-      const newUnitMap: Record<string, Unit[]> = {};
-
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (!key) continue;
-
-        if (key.startsWith("channel-course-")) {
-          try {
-            const item = localStorage.getItem(key);
-            if (item) {
-              const course = JSON.parse(item) as Course;
-              loadedCourses.push(course);
-            }
-          } catch (error) {
-            console.warn("Failed to parse course:", key, error);
-          }
-        }
-        if (key.startsWith("channel-unit-")) {
-          const withoutPrefix = key.replace("channel-unit-", ""); 
-          const parts = withoutPrefix.split("-");
-          if (parts.length < 6) {
-            console.warn("Malformed unit key:", key);
-            return;
-          }
-
-          const courseId = parts.slice(0, 5).join("-");
-          const item = localStorage.getItem(key);
-
-          if (item) {
-            try {
-              const unit = JSON.parse(item) as Unit;
-              if (!newUnitMap[courseId]) newUnitMap[courseId] = [];
-              newUnitMap[courseId].push(unit);
-            } catch {
-              console.warn("Failed to parse unit JSON for:", key);
-            }
-          }
-        }
-      }
-      setCourses(loadedCourses);
-      setUnitMap(newUnitMap);
-    };
 
     const loadCoursesAndUnits = async () => {
       try {
+        setLoading(true);
         const { courses, unitMap } =
           type === "channel"
             ? await fetchChannelCoursesAndUnits(user?.uid as string)
             : await fetchLearningCoursesAndUnits(user?.uid as string);
         setCourses(courses);
         setUnitMap(unitMap);
+        setLoading(false);
       } catch (err) {
         console.error("Failed to fetch from Firebase:", err);
       }
     };
-    if (cache) {
-      getCache();
-    } else {
-      loadCoursesAndUnits();
-    }
-  }, [cache, open, type, user?.uid]);
+
+    loadCoursesAndUnits();
+  }, [open, type, user?.uid]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -115,7 +74,9 @@ export function CourseDialog({
           <DialogTitle className="text-2xl">Courses</DialogTitle>
         </DialogHeader>
 
-        <div className="mt-4 space-y-4">
+        {loading && <LoadingScreen />}
+
+        <div className="space-y-4">
           {courses.map((course) =>
             courseOnly ? (
               <div
@@ -150,6 +111,16 @@ export function CourseDialog({
                   </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-zinc-800 border-zinc-600 text-white w-64">
+                  {allowNoUnit && (
+                    <DropdownMenuItem
+                      onClick={() => {
+                        onOpenChange(false);
+                        onUnitSelect(course, null);
+                      }}
+                    >
+                      No unit
+                    </DropdownMenuItem>
+                  )}
                   {(unitMap[course.key] ?? []).length === 0 ? (
                     <DropdownMenuItem disabled>No units found</DropdownMenuItem>
                   ) : (
@@ -168,6 +139,11 @@ export function CourseDialog({
                 </DropdownMenuContent>
               </DropdownMenu>
             )
+          )}
+          {courses.length === 0 && (
+            <div className="text-center text-gray-400 p-4">
+              {noCourseMessage}
+            </div>
           )}
         </div>
       </DialogContent>

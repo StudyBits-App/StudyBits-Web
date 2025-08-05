@@ -40,13 +40,11 @@ import { SiteHeader } from "@/components/site-header";
 const AnswerPage: React.FC = () => {
   const { user } = useAuth();
 
-  const [loading, setLoading] = useState(true);
   const [questionsQueue, setQuestionsQueue] = useState<QuestionMetadata[]>([]);
   const [currentQuestionId, setCurrentQuestionId] = useState<string | null>(
     null
   );
   const [question, setQuestion] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [answersSubmitted, setAnswersSubmitted] = useState(false);
   const [answerChoices, setAnswerChoices] = useState<QuestionAnswer[]>([]);
   const [hints, setHints] = useState<AnswerHint[]>([]);
@@ -69,7 +67,10 @@ const AnswerPage: React.FC = () => {
   const [allCombosUsed, setAllCombosUsed] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [error, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [courseOpen, setCourseOpen] = useState(false);
+  const [userSelectedCourse, setUserSelectedCourse] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const { id } = useParams();
   const flatId = useMemo(() => (Array.isArray(id) ? id : []), [id]);
@@ -78,6 +79,9 @@ const AnswerPage: React.FC = () => {
   const handleUnitSelect = (course: Course, unit: Unit | null) => {
     setStudyingCourse(course.key);
     setStudiedUnit(unit ? unit.key : "");
+    setSelectedCourseName(course.name);
+    setSelectedUnitName(unit?.name || null);
+    setUserSelectedCourse(true);
   };
 
   const fetchQuestions = useCallback(async () => {
@@ -135,7 +139,6 @@ const AnswerPage: React.FC = () => {
       courseIdRef.current = queue[0].courseId;
     } catch (err) {
       console.error("[fetchQuestions] Error:", err);
-      setErrorMessage("An error occurred.");
     } finally {
       setLoading(false);
     }
@@ -276,6 +279,7 @@ const AnswerPage: React.FC = () => {
   const handleCourseUnitReset = () => {
     setStudyingCourse(null);
     setStudiedUnit("");
+    setUserSelectedCourse(false);
   };
 
   if (error) return notFound();
@@ -295,69 +299,75 @@ const AnswerPage: React.FC = () => {
 
         <div className="space-y-6">
           {loading && <LoadingScreen />}
+
           {!currentQuestionId && !loading && (
             <p className="text-center text-sm">
               Hmm... looks like you aren&apos;t studying anything. Go out and
               explore!
             </p>
           )}
+
           {errorMessage && (
             <p className="text-center text-sm">{errorMessage}</p>
           )}
 
-          {selectedCourseName && studyingCourse && (
+          {(selectedCourseName || selectedUnitName) && (
             <div
-              className="w-fit mx-auto px-4 py-2 rounded-lg bg-zinc-900"
+              className="w-fit mx-auto px-4 py-2 rounded-lg bg-[var(--card)]"
               onClick={() => setCourseOpen(true)}
             >
               <p className="text-sm text-center font-outfit flex items-center gap-2">
-                <span
-                  className="bg-clip-text text-transparent"
-                  style={{
-                    backgroundImage:
-                      "linear-gradient(to right, #f43f5e, #3b82f6)",
-                  }}
-                >
-                  {selectedCourseName}
-                </span>
+                {selectedCourseName && (
+                  <span
+                    className={
+                      userSelectedCourse ? "bg-clip-text text-transparent" : ""
+                    }
+                    style={
+                      userSelectedCourse
+                        ? {
+                            backgroundImage:
+                              "linear-gradient(to right, #f43f5e, #3b82f6)",
+                          }
+                        : undefined
+                    }
+                  >
+                    {selectedCourseName}
+                  </span>
+                )}
 
                 {selectedUnitName && (
                   <>
                     <span className="text-zinc-500">·</span>
                     <span
-                      className="bg-clip-text text-transparent"
-                      style={{
-                        backgroundImage:
-                          "linear-gradient(to right, #f43f5e, #3b82f6)",
-                      }}
+                      className={
+                        userSelectedCourse
+                          ? "bg-clip-text text-transparent"
+                          : ""
+                      }
+                      style={
+                        userSelectedCourse
+                          ? {
+                              backgroundImage:
+                                "linear-gradient(to right, #f43f5e, #3b82f6)",
+                            }
+                          : undefined
+                      }
                     >
                       {selectedUnitName}
                     </span>
                   </>
                 )}
 
-                <span
-                  className="text-zinc-400 hover:text-red-400 cursor-pointer text-lg"
-                  onClick={handleCourseUnitReset}
-                >
-                  x
-                </span>
-              </p>
-            </div>
-          )}
-
-          {selectedCourseName && !studyingCourse && (
-            <div
-              className="w-fit mx-auto px-4 py-2 rounded-lg bg-[var(--card)]"
-              onClick={() => setCourseOpen(true)}
-            >
-              <p className="text-sm text-zinc-300 text-center">
-                {selectedCourseName}
-                {selectedUnitName && (
-                  <>
-                    <span className="mx-2 text-zinc-500">·</span>
-                    {selectedUnitName}
-                  </>
+                {studyingCourse && (
+                  <span
+                    className="text-zinc-400 hover:text-red-400 cursor-pointer text-lg leading-none flex items-center pb-[2px]"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleCourseUnitReset();
+                    }}
+                  >
+                    x
+                  </span>
                 )}
               </p>
             </div>
@@ -411,7 +421,7 @@ const AnswerPage: React.FC = () => {
             </div>
           )}
 
-          {currentQuestionId && (
+          {currentQuestionId && !loading && (
             <div className="flex justify-end pt-4 gap-3">
               <button
                 className="bg-[var(--card)] hover:bg-zinc-700 text-white px-4 h-12 rounded-xl flex items-center justify-center text-sm font-semibold transition border border-zinc-600"
@@ -432,22 +442,27 @@ const AnswerPage: React.FC = () => {
           )}
         </div>
 
-        {currentQuestionId && courseName && unitName && courseIdRef && (
-          <AnswerBottomBar
-            questionId={currentQuestionId}
-            courseName={courseName}
-            unitName={unitName}
-            selectedCourseId={selectedCourseId || undefined}
-            courseId={courseIdRef.current as string}
-          />
-        )}
+        {currentQuestionId &&
+          courseName &&
+          unitName &&
+          courseIdRef &&
+          !loading && (
+            <AnswerBottomBar
+              questionId={currentQuestionId}
+              courseName={courseName}
+              unitName={unitName}
+              selectedCourseId={selectedCourseId || undefined}
+              courseId={courseIdRef.current as string}
+            />
+          )}
 
         <CourseDialog
           open={courseOpen}
           onOpenChange={setCourseOpen}
           onUnitSelect={handleUnitSelect}
           type={"learning"}
-          cache={false}
+          allowNoUnit={true}
+          noCourseMessage={"You are not studying any courses."}
         />
 
         <AllCombos open={allCombosUsed} onOpenChange={setAllCombosUsed} />

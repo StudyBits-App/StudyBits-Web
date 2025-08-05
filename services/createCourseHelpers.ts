@@ -79,8 +79,6 @@ export const submitEditedCourse = async (
       ...courseCopy,
       picUrl: pic,
       lastModified: new Date().getTime(),
-      numQuestions: 0,
-      creator: uid,
       tags: tags,
     };
 
