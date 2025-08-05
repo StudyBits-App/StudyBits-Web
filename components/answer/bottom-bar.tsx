@@ -18,16 +18,18 @@ import {
   unsubscribeFromCourse,
   getQuestionInfoById,
 } from "@/services/answerHelpers";
-import { Channel, QuestionInfo } from "@/utils/interfaces";
+import { Channel, Course, QuestionInfo } from "@/utils/interfaces";
 import { getChannelFromCourse } from "@/services/channelHelpers";
 import { formatCount } from "@/utils/utils";
 import { cacheSubscribedCourses } from "@/services/cacheServices";
+import { CourseDialog } from "../course-unit-selector";
 
 interface AnswerBottomBarProps {
   questionId: string;
   courseName: string;
   unitName: string;
-  selectedCourseId: string;
+  selectedCourseId?: string;
+  courseId: string;
 }
 
 export function AnswerBottomBar({
@@ -35,6 +37,7 @@ export function AnswerBottomBar({
   courseName,
   unitName,
   selectedCourseId,
+  courseId,
 }: AnswerBottomBarProps) {
   const { user } = useAuth();
 
@@ -47,6 +50,7 @@ export function AnswerBottomBar({
   const [likeCount, setLikeCount] = useState(0);
   const [dislikeCount, setDislikeCount] = useState(0);
   const [viewCount, setViewCount] = useState(0);
+  const [courseOpen, setCourseOpen] = useState(false);
 
   const fetchEngagementData = useCallback(
     async (courseId: string) => {
@@ -96,7 +100,7 @@ export function AnswerBottomBar({
   }, [questionId, user?.uid, fetchEngagementData]);
 
   useEffect(() => {
-    cacheSubscribedCourses(user?.uid as string)
+    cacheSubscribedCourses(user?.uid as string);
   }, [user?.uid]);
 
   const handleLike = async () => {
@@ -161,12 +165,25 @@ export function AnswerBottomBar({
           setSubscribed(false);
         }
       } else {
-        await subscribeToCourse(courseId, selectedCourseId, user.uid);
-        setSubscribed(true);
+        if (selectedCourseId) {
+          await subscribeToCourse(courseId, selectedCourseId, user.uid);
+          setSubscribed(true);
+        }
+        else{
+          setCourseOpen(true);
+        }
       }
     } catch (err) {
       console.error("Error handling subscribe", err);
     }
+  };
+  const handleCourseSelect = async (course: Course) => {
+    await subscribeToCourse(
+      courseId as string,
+      course.key,
+      user?.uid as string
+    );
+    setSubscribed(true);
   };
 
   if (!questionInfo) return null;
@@ -225,6 +242,15 @@ export function AnswerBottomBar({
         <IconPencil size={30} className="text-zinc-500" />
         <span>{formatCount(viewCount)}</span>
       </div>
+
+      <CourseDialog
+        open={courseOpen}
+        onOpenChange={setCourseOpen}
+        onUnitSelect={handleCourseSelect}
+        courseOnly={true}
+        type={"learning"}
+        cache={false}
+      />
     </div>
   );
 }

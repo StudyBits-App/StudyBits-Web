@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { CourseDialog } from "@/components/course-unit-selector";
 import { cacheCoursesAndUnits } from "@/services/cacheServices";
 import { useAuth } from "@/hooks/authContext";
+import { SiteHeader } from "@/components/site-header";
 
 export default function ManageQuestionsPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -57,13 +58,22 @@ export default function ManageQuestionsPage() {
   };
 
   const draftEditRedirect = (questionId: string) => {
-    router.push(`/questionPortal/publish/${questionId}`);
+    router.push(`/questionPortal/draft/${questionId}`);
   };
 
   const handleUnitSelect = (course: Course, unit: Unit | null) => {
     if (!unit) return;
     setCourseId(course.key);
     setUnitId(unit.key);
+  };
+
+  const handleDelete = async (id: string, isDraft: boolean) => {
+    await deleteQuestionFromUnit(courseId!, unitId!, id, isDraft);
+    if (isDraft) {
+      setQuestions((prev) => prev.filter((q) => q.id !== id));
+    } else {
+      setQuestionDrafts((prev) => prev.filter((q) => q.id !== id));
+    }
   };
 
   const renderQuestionList = (
@@ -119,14 +129,7 @@ export default function ManageQuestionsPage() {
                 <IconPencil className="w-5 h-5 text-white" />
               </button>
               <button
-                onClick={() =>
-                  deleteQuestionFromUnit(
-                    courseId as string,
-                    unitId as string,
-                    question.id as string,
-                    isDraft
-                  )
-                }
+                onClick={() => handleDelete(question.id as string, isDraft)}
                 className="p-2 bg-red-600 hover:bg-red-700 rounded-lg"
                 title="Delete Question"
               >
@@ -154,6 +157,8 @@ export default function ManageQuestionsPage() {
     >
       <AppSidebar variant="inset" />
       <SidebarInset className="p-6 space-y-6 min-h-screen overflow-y-auto">
+        <SiteHeader />
+
         <div className="bg-[var(--card)] rounded-xl p-4 shadow-sm flex justify-between items-center">
           <h1 className="text-2xl font-semibold text-white">
             Manage Questions

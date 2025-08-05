@@ -68,13 +68,13 @@ export default function SubscriberList({ link, ids }: SubscriberListProps) {
           key={course.key}
           onClick={() => handleClick(course.key)}
           className={clsx(
-            "rounded-lg border bg-[var(--card)] p-4 cursor-pointer transition hover:border-zinc-600",
+            "rounded-lg bg-[var(--card)] p-4 cursor-pointer transition hover:border-zinc-600",
             "border-zinc-700"
           )}
         >
           <div className="flex items-center space-x-4">
             {course.picUrl && (
-              <div className="relative w-12 h-12 rounded-full overflow-hidden border border-white shrink-0">
+              <div className="relative w-12 h-12 rounded-full overflow-hidden shrink-0">
                 <Image
                   src={course.picUrl}
                   alt="Course"

@@ -28,14 +28,15 @@ export async function createCourseUnitSelector(
 
     snapshot.forEach((doc) => {
       const data = doc.data();
-      const units = data?.useUnits ? data?.studyingUnits || [] : [""];
+      const useUnits = data?.useUnits;
+      const units: string[] = useUnits ? data?.studyingUnits || [] : [""];
 
-      if (
-        !units ||
-        units.length === 0 ||
-        (units.length === 1 && units[0] === "")
-      )
+      if (useUnits && (!units || units.length === 0)) {
+        console.warn(
+          `[Selector] Skipping course ${doc.id} due to missing units`
+        );
         return;
+      }
 
       units.forEach((unitId: string) => {
         original.push({ courseId: doc.id, unitId });
@@ -60,7 +61,9 @@ export async function createCourseUnitSelector(
     }
 
     index = 0;
-    exhaustedCallback();
+    if (original.length === 0) {
+      exhaustedCallback();
+    }
     console.log("[Selector Reset] Shuffled again:", original);
   };
 

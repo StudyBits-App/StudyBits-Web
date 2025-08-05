@@ -91,6 +91,7 @@ export interface QuestionInfo {
   hints: AnswerHint[];
   answers: QuestionAnswer[];
   course: string;
+  unit: string;
 }
 
 export interface QuestionAnswer {

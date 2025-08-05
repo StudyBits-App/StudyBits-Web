@@ -3,6 +3,7 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { ChannelDisplay } from "@/components/channel-display";
 import { CourseCard } from "@/components/course-card";
+import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/authContext";
 import { getChannelData } from "@/services/channelHelpers";
@@ -20,7 +21,7 @@ export default function ChannelPage() {
       if (!user?.uid) return;
       try {
         const data = await getChannelData(user.uid);
-        if(data === null) {
+        if (data === null) {
           router.push("/createChannel");
         }
         setChannel(data);
@@ -43,6 +44,8 @@ export default function ChannelPage() {
     >
       <AppSidebar variant="inset" />
       <SidebarInset className="p-6 space-y-6 min-h-screen">
+        <SiteHeader />
+
         {channel && (
           <>
             <ChannelDisplay

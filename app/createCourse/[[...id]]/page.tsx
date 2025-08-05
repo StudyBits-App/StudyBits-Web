@@ -1,81 +1,143 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { notFound, useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { Course, defaultCourse } from "@/utils/interfaces";
 import { useAuth } from "@/hooks/authContext";
 import { uploadImageToFirebase } from "@/services/handleImages";
-import { v4 as uuidv4, v4 } from "uuid";
-import { createNewCourse } from "@/services/courseUnitData";
+import { v4 as uuidv4 } from "uuid";
+import { getCourseData } from "@/services/courseUnitData";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { classifyCourse } from "@/utils/classify";
 import LoadingScreen from "@/components/loading";
+import { SiteHeader } from "@/components/site-header";
+import {
+  createNewCourse,
+  submitEditedCourse,
+} from "@/services/createCourseHelpers";
+import { getChannelData } from "@/services/channelHelpers";
+
+type CourseWithFile = Course & {
+  picFile?: File;
+};
 
 export default function CreateCoursePage() {
-  const [course, setCourse] = useState<Course>({
+  const [course, setCourse] = useState<CourseWithFile>({
     ...defaultCourse,
     key: uuidv4(),
   });
+  const [originalCourse, setOriginalCourse] = useState<Course | null>(null);
   const router = useRouter();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+
+  const { id } = useParams();
+  const flatId = useMemo(() => (Array.isArray(id) ? id : []), [id]);
+  const isInParamMode = flatId.length > 0;
+
+  useEffect(() => {
+    const initializeFromId = async () => {
+      if (isInParamMode) {
+        try {
+          const channelData = await getChannelData(user?.uid as string);
+          const courseArray = channelData?.courses;
+          if (!courseArray || !courseArray.includes(flatId[0])) {
+            router.push("/channel");
+            return;
+          }
+          const courseData = await getCourseData(flatId[0]);
+          if (courseData) {
+            setCourse(courseData);
+            setOriginalCourse(courseData);
+          } else {
+            setError(true);
+          }
+        } catch (error) {
+          console.error("Error fetching course data:", error);
+          setError(true);
+        }
+      }
+    };
+    initializeFromId();
+  }, [isInParamMode, flatId, user?.uid, router]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setCourse({ ...course, picUrl: URL.createObjectURL(file) });
+      const previewUrl = URL.createObjectURL(file);
+      setCourse({ ...course, picUrl: previewUrl, picFile: file });
     }
   };
 
-  const handleCreate = async () => {
-    if (!course.name.trim()) {
-      alert("Course name is required");
-      return;
-    }
-
-    if (course.name.length > 100) {
-      alert(`Course name must be less than ${100} characters.`);
-      return;
-    }
-
-    if (course.description && course.description.length > 1000) {
-      alert(
-        `Course description must be less than ${1000} characters.`
-      );
-      return;
-    }
+  const handleSubmit = async () => {
+    if (!validateCourse()) return;
 
     try {
       setLoading(true);
       const tags = await classifyCourse(course.name);
       if ("tags" in tags && tags.tags.length > 0) {
-        console.log(tags.tags);
-        if (course.picUrl && course.picUrl.startsWith("blob:")) {
-          const file = await fetch(course.picUrl).then((res) => res.blob());
-          const uploadedUrl = await uploadImageToFirebase(file, "coursePics");
-          course.picUrl = uploadedUrl;
+        if (isInParamMode && originalCourse) {
+          await handleEditCourse(tags.tags);
+        } else {
+          await handleCreateCourse(tags.tags);
         }
-        const id = v4();
-        console.log(id);
-        const uploadedCourse = await createNewCourse(
-          user?.uid as string,
-          course,
-          id,
-          tags.tags
-        );
-        console.log(uploadedCourse);
-        setLoading(false);
-        router.push(`/manageCourse/${id}`);
-      } else {
-        console.warn("Classification failed");
+        router.push(`/manageCourse/${course.key}`);
       }
     } catch (error) {
-      console.error("Error creating course:", error);
+      console.error("Error submitting course:", error);
+    } finally {
+      setLoading(false);
     }
   };
+
+  const validateCourse = () => {
+    if (!course.name.trim()) {
+      alert("Course name is required");
+      return false;
+    }
+
+    if (course.name.length > 100) {
+      alert("Course name must be less than 100 characters.");
+      return false;
+    }
+
+    if (course.description && course.description.length > 1000) {
+      alert("Course description must be less than 1000 characters.");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleCreateCourse = async (tags: string[]) => {
+    if (course.picFile) {
+      const uploadedUrl = await uploadImageToFirebase(
+        course.picFile,
+        "coursePics"
+      );
+      course.picUrl = uploadedUrl;
+    }
+
+    const courseToSave = { ...course };
+    delete courseToSave.picFile;
+
+    await createNewCourse(user?.uid as string, courseToSave, course.key, tags);
+  };
+
+  const handleEditCourse = async (tags: string[]) => {
+    await submitEditedCourse(
+      user?.uid as string,
+      course,
+      originalCourse as Course,
+      tags
+    );
+  };
+
+  if (error) return notFound();
 
   return (
     <SidebarProvider
@@ -88,6 +150,8 @@ export default function CreateCoursePage() {
     >
       <AppSidebar variant="inset" />
       <SidebarInset className="p-6 space-y-6 min-h-screen">
+        <SiteHeader />
+
         <div className="py-12 space-y-6 px-6 min-h-screen">
           <h1 className="text-white text-2xl font-bold">Create a Course</h1>
 
@@ -99,7 +163,7 @@ export default function CreateCoursePage() {
                   alt="Course Image"
                   width={96}
                   height={96}
-                  className="rounded-full border border-zinc-600 object-cover"
+                  className="w-24 h-24 rounded-full border border-zinc-600 object-cover"
                 />
               ) : (
                 <div className="w-24 h-24 rounded-full bg-zinc-800 flex items-center justify-center text-white">
@@ -144,10 +208,10 @@ export default function CreateCoursePage() {
               <LoadingScreen />
             ) : (
               <Button
-                onClick={handleCreate}
+                onClick={handleSubmit}
                 className="mt-4 bg-teal-600 hover:bg-teal-500"
               >
-                Create Course
+                {isInParamMode ? "Save Changes" : "Create Course"}
               </Button>
             )}
           </div>

@@ -20,6 +20,7 @@ import { useAuth } from "@/hooks/authContext";
 import { getChannelData } from "@/services/channelHelpers";
 import { classifyUnit } from "@/utils/classify";
 import LoadingScreen from "@/components/loading";
+import { SiteHeader } from "@/components/site-header";
 
 type EditableUnit = Unit & {
   isNew?: boolean;
@@ -110,7 +111,7 @@ export default function ManageCoursePage() {
       };
       const tags = await classifyUnit(unit.name);
       if ("tags" in tags && tags.tags.length > 0) {
-      await saveUnit(id, cleanUnit, tags.tags);
+        await saveUnit(id, cleanUnit, tags.tags);
       }
     }
 
@@ -135,6 +136,8 @@ export default function ManageCoursePage() {
     >
       <AppSidebar variant="inset" />
       <SidebarInset className="p-6 space-y-6 min-h-screen overflow-x-hidden">
+        <SiteHeader />
+
         <div className="max-w-6xl w-full mx-auto px-6 my-6 space-y-6">
           <Card className="bg-[var(--card)]">
             <CardContent className="p-4">
@@ -151,7 +154,7 @@ export default function ManageCoursePage() {
             </CardContent>
           </Card>
 
-          <CourseDisplay courseId={id as string} />
+          <CourseDisplay courseId={id as string} link={"/createCourse"}/>
 
           <div className="bg-[var(--card)] rounded-2xl shadow-md p-4 flex items-center justify-between">
             <h1 className="text-xl font-semibold text-white w-1/3">Units</h1>

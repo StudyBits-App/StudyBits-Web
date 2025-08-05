@@ -37,6 +37,8 @@ import { notFound, useParams, useRouter } from "next/navigation";
 import { getCourseData, getUnitForCourse } from "@/services/courseUnitData";
 import { cacheCoursesAndUnits } from "@/services/cacheServices";
 import { classifyQuestion } from "@/utils/classify";
+import LoadingScreen from "@/components/loading";
+import { SiteHeader } from "@/components/site-header";
 
 export default function QuestionPortal() {
   const [id, setId] = useState("");
@@ -56,6 +58,7 @@ export default function QuestionPortal() {
     null
   );
   const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [final, setFinal] = useState(false);
   const { user } = useAuth();
   const params = useParams();
@@ -208,6 +211,7 @@ export default function QuestionPortal() {
       );
       return;
     }
+    setLoading(true);
     let status: "error" | { status: "success"; id: string } = "error";
     if (selectedCourse && selectedUnit) {
       if (id === "") {
@@ -221,7 +225,7 @@ export default function QuestionPortal() {
         });
       } else {
         const editingQuestion: EditingQuestion = {
-          id,
+          id: id,
           question: question.trim(),
           hints: hints,
           oldHints: origionalHints,
@@ -238,21 +242,25 @@ export default function QuestionPortal() {
         alert(
           "There was an error! Most likley, you are editing an invalid question."
         );
+        setLoading(false);
       } else {
         const tags = await classifyQuestion(status.id);
         if ("tags" in tags && tags.tags.length > 0) {
           addTagsToQuestion(status.id, tags.tags);
-          router.push(`/questionPortal/publish/${id}`);
+          setLoading(false);
+          router.push(`/questionPortal/publish/${status.id}`);
         } else {
           alert(
             "Your question was saved, but there wasn an error! Save it again."
           );
         }
+        setLoading(false);
       }
     }
   };
 
   const handleNewDraft = async () => {
+    setLoading(true);
     const fullHints = await convertHintsForUpload(hints);
     if (selectedCourse && selectedUnit) {
       setQuestionType("draft");
@@ -268,16 +276,20 @@ export default function QuestionPortal() {
         alert(
           "There was an error! Most likley, you did not select a course and unit."
         );
+        setLoading(false);
       }
       if (status === "success") {
+        setLoading(false);
         router.push(`/questionPortal/draft/${id}`);
       }
     } else {
       alert("Please select a course and unit before saving as draft.");
+      setLoading(false);
     }
   };
 
   const handleEditingDraft = async () => {
+    setLoading(true);
     const fullHints = await handleHintImages(hints, origionalHints);
     if (selectedCourse && selectedUnit) {
       setQuestionType("draft");
@@ -292,20 +304,24 @@ export default function QuestionPortal() {
         oldUnit: oritionalUnit,
       });
       if (status === "error") {
+        setLoading(false);
         alert(
           "There was an error! Most likley, you did not select a course and unit."
         );
       }
       if (status === "success") {
+        setLoading(false);
         setFinal(true);
       }
     } else {
+      setLoading(false);
       alert("Please select a course and unit before saving as draft.");
     }
   };
 
   const fromDraftToPublish = async () => {
     if (selectedCourse && selectedUnit) {
+      setLoading(true);
       alert("Save all changes as a draft before proceeding.");
       const confirmed = window.confirm("Do you want to proceed?");
       if (!confirmed) return;
@@ -313,8 +329,10 @@ export default function QuestionPortal() {
       const tags = await classifyQuestion(id);
       if ("tags" in tags && tags.tags.length > 0) {
         addTagsToQuestion(id, tags.tags);
+        setLoading(false);
         router.push(`/questionPortal/publish/${id}`);
       } else {
+        setLoading(false);
         alert(
           "Your question was saved, but there wasn an error! Save it again."
         );
@@ -324,10 +342,12 @@ export default function QuestionPortal() {
 
   const fromPublishToDraft = async () => {
     if (selectedCourse && selectedUnit) {
+      setLoading(true);
       alert("Publish all changes before proceeding.");
       const confirmed = window.confirm("Do you want to proceed?");
       if (!confirmed) return;
       publishToDraft(id, selectedCourse.key, selectedUnit.key);
+      setLoading(false);
       router.push(`/questionPortal/draft/${id}`);
     }
   };
@@ -347,6 +367,8 @@ export default function QuestionPortal() {
     >
       <AppSidebar variant="inset" />
       <SidebarInset className="p-6 space-y-4 min-h-screen">
+        <SiteHeader />
+
         <div
           className={
             "inline-block px-3 py-1 rounded-md text-sm font-medium bg-[var(--card)] text-white"
@@ -524,57 +546,69 @@ export default function QuestionPortal() {
           </div>
         ))}
         <FinalDialog open={final} onOpenChange={setFinal} />
-        {questionType === null && (
-          <div className="mt-10 flex justify-center gap-4">
-            <button
-              className="bg-zinc-100 text-black px-6 py-2 rounded-md shadow border border-gray-300 hover:bg-zinc-200 transition"
-              onClick={handleNewDraft}
-            >
-              Save as Draft
-            </button>
 
-            <button
-              onClick={handleSubmit}
-              className="bg-black text-white px-6 py-2 rounded-md shadow hover:bg-gray-800 transition"
-            >
-              Publish
-            </button>
-          </div>
-        )}
-        {questionType === "draft" && (
-          <div className="mt-10 flex justify-center gap-4">
-            <button
-              className="bg-zinc-100 text-black px-6 py-2 rounded-md shadow border border-gray-300 hover:bg-zinc-200 transition"
-              onClick={handleEditingDraft}
-            >
-              Save changes as Draft
-            </button>
+        {questionType === null &&
+          (loading ? (
+            <LoadingScreen />
+          ) : (
+            <div className="mt-10 flex justify-center gap-4">
+              <button
+                className="bg-zinc-100 text-black px-6 py-2 rounded-md shadow border border-gray-300 hover:bg-zinc-200 transition"
+                onClick={handleNewDraft}
+              >
+                Save as Draft
+              </button>
 
-            <button
-              onClick={fromDraftToPublish}
-              className="bg-black text-white px-6 py-2 rounded-md shadow hover:bg-gray-800 transition"
-            >
-              Publish
-            </button>
-          </div>
-        )}
-        {questionType === "publish" && (
-          <div className="mt-10 flex justify-center gap-4">
-            <button
-              className="bg-zinc-100 text-black px-6 py-2 rounded-md shadow border border-gray-300 hover:bg-zinc-200 transition"
-              onClick={fromPublishToDraft}
-            >
-              Convert to Draft
-            </button>
+              <button
+                onClick={handleSubmit}
+                className="bg-black text-white px-6 py-2 rounded-md shadow hover:bg-gray-800 transition"
+              >
+                Publish
+              </button>
+            </div>
+          ))}
 
-            <button
-              onClick={handleSubmit}
-              className="bg-black text-white px-6 py-2 rounded-md shadow hover:bg-gray-800 transition"
-            >
-              Publish Changes
-            </button>
-          </div>
-        )}
+        {questionType === "draft" &&
+          (loading ? (
+            <LoadingScreen />
+          ) : (
+            <div className="mt-10 flex justify-center gap-4">
+              <button
+                className="bg-zinc-100 text-black px-6 py-2 rounded-md shadow border border-gray-300 hover:bg-zinc-200 transition"
+                onClick={handleEditingDraft}
+              >
+                Save changes as Draft
+              </button>
+
+              <button
+                onClick={fromDraftToPublish}
+                className="bg-black text-white px-6 py-2 rounded-md shadow hover:bg-gray-800 transition"
+              >
+                Publish
+              </button>
+            </div>
+          ))}
+
+        {questionType === "publish" &&
+          (loading ? (
+            <LoadingScreen />
+          ) : (
+            <div className="mt-10 flex justify-center gap-4">
+              <button
+                className="bg-zinc-100 text-black px-6 py-2 rounded-md shadow border border-gray-300 hover:bg-zinc-200 transition"
+                onClick={fromPublishToDraft}
+              >
+                Convert to Draft
+              </button>
+
+              <button
+                onClick={handleSubmit}
+                className="bg-black text-white px-6 py-2 rounded-md shadow hover:bg-gray-800 transition"
+              >
+                Publish Changes
+              </button>
+            </div>
+          ))}
       </SidebarInset>
     </SidebarProvider>
   );

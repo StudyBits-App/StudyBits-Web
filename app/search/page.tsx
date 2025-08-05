@@ -6,6 +6,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { CourseCard } from "@/components/course-card";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { searchCourses } from "@/utils/searchAlgorithm";
+import { SiteHeader } from "@/components/site-header";
 
 export default function ResultsPage() {
   const searchParams = useSearchParams();
@@ -43,6 +44,8 @@ export default function ResultsPage() {
     >
       <AppSidebar variant="inset" />
       <SidebarInset className="p-6 space-y-6 min-h-screen">
+        <SiteHeader />
+        
         <div className="w-full max-w-6xl mx-auto space-y-6 text-white">
           <form onSubmit={handleSubmit}>
             <input

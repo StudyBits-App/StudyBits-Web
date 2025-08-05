@@ -3,6 +3,7 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { ChannelDisplay } from "@/components/channel-display";
 import { CourseCard } from "@/components/course-card";
+import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { getChannelData } from "@/services/channelHelpers";
 import { Channel } from "@/utils/interfaces";
@@ -34,7 +35,7 @@ export default function ChannelPage() {
   if (notFoundError) {
     notFound();
   }
-  
+
   return (
     <SidebarProvider
       style={
@@ -46,6 +47,8 @@ export default function ChannelPage() {
     >
       <AppSidebar variant="inset" />
       <SidebarInset className="p-6 space-y-6 min-h-screen">
+        <SiteHeader />
+
         {channel && (
           <>
             <ChannelDisplay channel={channel} />
@@ -53,7 +56,7 @@ export default function ChannelPage() {
               <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                 {channel.courses.map((courseId) => (
                   <div key={courseId} className="h-full">
-                    <CourseCard courseId={courseId} link="/viewCourse"/>
+                    <CourseCard courseId={courseId} link="/viewCourse" />
                   </div>
                 ))}
               </div>

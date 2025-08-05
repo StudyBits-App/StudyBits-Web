@@ -9,7 +9,6 @@ import {
   orderBy,
   query,
   setDoc,
-  updateDoc,
 } from "firebase/firestore";
 
 export const getCourseData = async (courseId: string): Promise<Course> => {
@@ -66,41 +65,6 @@ export async function saveUnit(
     { merge: true }
   );
 }
-
-export const createNewCourse = async (
-  uid: string,
-  course: Course,
-  id: string,
-  tags: string[]
-): Promise<Course> => {
-  try {
-    const courseRef = doc(db, "courses", id);
-    const timestamp = new Date().getTime();
-
-    const courseWithMeta = {
-      ...course,
-      key: id,
-      lastModified: timestamp,
-      numQuestions: 0,
-      creator: uid,
-      tags: tags
-    };
-
-    await setDoc(courseRef, courseWithMeta);
-
-    const channelRef = doc(db, "channels", uid);
-    const channelDoc = await getDoc(channelRef);
-    const currentCourses = channelDoc.data()?.courses || [];
-
-    await updateDoc(channelRef, {
-      courses: [...currentCourses, id],
-    });
-    return courseWithMeta;
-  } catch (error) {
-    console.error("Error in createNewCourse:", error);
-    throw error;
-  }
-};
 
 export const getAllLearningCourseIds = async (
   id: string

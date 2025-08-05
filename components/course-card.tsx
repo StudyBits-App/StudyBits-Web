@@ -64,7 +64,7 @@ export function CourseCard({
         onMouseLeave={() => setExpanded(false)}
       >
         <div className="flex-1 px-4 pt-4 flex items-center justify-center">
-          <div className="w-full flex items-start space-x-4">
+          <div className="w-full flex items-center space-x-4">
             {course.picUrl && (
               <motion.div>
                 <div className="w-14 h-14 relative rounded-full overflow-hidden shrink-0 border border-zinc-700">
@@ -92,18 +92,20 @@ export function CourseCard({
                 </h2>
               </motion.div>
 
-              <motion.div
-                initial={false}
-                animate={{
-                  height: expanded ? "auto" : "1.25rem",
-                }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="overflow-hidden"
-              >
-                <p className="text-sm text-zinc-400 leading-relaxed whitespace-pre-wrap break-words">
-                  {course.description}
-                </p>
-              </motion.div>
+              {course.description && (
+                <motion.div
+                  initial={false}
+                  animate={{
+                    height: expanded ? "auto" : "1.25rem",
+                  }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  className="overflow-hidden"
+                >
+                  <p className="text-sm text-zinc-400 leading-relaxed whitespace-pre-wrap break-words">
+                    {course.description}
+                  </p>
+                </motion.div>
+              )}
 
               {needsExpansion && (
                 <button

@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   AnswerHint,
   Course,
@@ -15,6 +21,7 @@ import { shuffleArray } from "@/utils/utils";
 import {
   addAnsweredQuestion,
   getQuestionInfoById,
+  idToAnswerElement,
   incrementViews,
 } from "@/services/answerHelpers";
 import { AnswerBottomBar } from "@/components/answer/bottom-bar";
@@ -27,6 +34,8 @@ import { createCourseUnitSelector } from "@/utils/getCombination";
 import { CourseDialog } from "@/components/course-unit-selector";
 import { AllCombos } from "@/components/answer/allCombos";
 import { CorrectAnswerCelebration } from "@/components/answer/correct-answer-celebration";
+import { notFound, useParams } from "next/navigation";
+import { SiteHeader } from "@/components/site-header";
 
 const AnswerPage: React.FC = () => {
   const { user } = useAuth();
@@ -52,11 +61,19 @@ const AnswerPage: React.FC = () => {
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [studyingCourse, setStudyingCourse] = useState<string | null>(null);
   const [studiedUnit, setStudiedUnit] = useState<string>("");
-  const [courseOpen, setCourseOpen] = useState(false);
+
   const [selector, setSelector] = useState<Awaited<
     ReturnType<typeof createCourseUnitSelector>
   > | null>(null);
+
   const [allCombosUsed, setAllCombosUsed] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [error, setError] = useState(false);
+  const [courseOpen, setCourseOpen] = useState(false);
+
+  const { id } = useParams();
+  const flatId = useMemo(() => (Array.isArray(id) ? id : []), [id]);
+  const isInParamMode = flatId.length > 0;
 
   const handleUnitSelect = (course: Course, unit: Unit | null) => {
     setStudyingCourse(course.key);
@@ -65,7 +82,6 @@ const AnswerPage: React.FC = () => {
 
   const fetchQuestions = useCallback(async () => {
     if (!selector) return;
-    console.log("[fetchQuestions] Started");
 
     setAnswersSubmitted(false);
     setLoading(true);
@@ -90,8 +106,8 @@ const AnswerPage: React.FC = () => {
 
       const [data, courseId, unitId] = response;
       setSelectedCourseId(courseId);
+
       const names = await getCourseUnitNamesFromId(courseId, unitId);
-      console.log(names);
       if (names) {
         setSelectedCourseName(names.courseName);
         setSelectedUnitName(names.unitName);
@@ -127,9 +143,9 @@ const AnswerPage: React.FC = () => {
 
   const fetchQuestionInfo = useCallback(
     async (id: string) => {
-      setAnswerChoices([]);
       setHints([]);
       setQuestion("");
+      setAnswerChoices([]);
       setAnswersSubmitted(false);
 
       try {
@@ -159,16 +175,14 @@ const AnswerPage: React.FC = () => {
   );
 
   const nextQuestion = () => {
-    if (questionsQueue.length === 0) {
-      selector?.reset?.();
-      fetchQuestions();
-      return;
-    }
+    setShowConfetti(false);
 
     const [, ...rest] = questionsQueue;
     const next = rest[0];
 
     if (!next) {
+      setQuestionsQueue([]);
+      setCurrentQuestionId(null);
       selector?.reset?.();
       fetchQuestions();
       return;
@@ -181,29 +195,58 @@ const AnswerPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (user?.uid) {
-      createCourseUnitSelector(user.uid, () => setAllCombosUsed(true)).then(
-        setSelector
-      );
-    }
+    createCourseUnitSelector(user?.uid as string, () => {
+      setAllCombosUsed(true);
+    }).then(setSelector);
   }, [user?.uid]);
 
   useEffect(() => {
-    if (selector) fetchQuestions();
-  }, [selector, fetchQuestions]);
+    if (!selector || isInParamMode) return;
+    fetchQuestions();
+  }, [selector, isInParamMode, fetchQuestions]);
 
   useEffect(() => {
     if (currentQuestionId) fetchQuestionInfo(currentQuestionId);
   }, [currentQuestionId, fetchQuestionInfo]);
 
+  useEffect(() => {
+    const initWithId = async () => {
+      if (flatId.length === 0 || !selector) return;
+      const questionId = flatId[0];
+
+      try {
+        const meta = await idToAnswerElement(questionId);
+        if (meta) {
+          setCourseName(meta.courseName);
+          setUnitName(meta.unitName);
+          setCurrentQuestionId(meta.questionId);
+          courseIdRef.current = meta.courseId;
+          setQuestionsQueue([{ ...meta }]);
+        }
+      } catch (error) {
+        console.error("Failed to load question by ID:", error);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (isInParamMode) {
+      initWithId();
+    }
+  }, [flatId, selector, isInParamMode]);
+
   const handleSubmitAnswers = () => {
     setAnswersSubmitted(true);
-    addAnsweredQuestion(
-      currentQuestionId as string,
-      user?.uid as string,
-      selectedCourseId as string
-    );
-    console.log("[handleSubmitAnswers] Submitted");
+
+    if (!isInParamMode) {
+      addAnsweredQuestion(
+        currentQuestionId as string,
+        user?.uid as string,
+        selectedCourseId as string
+      );
+      console.log("[handleSubmitAnswers] Submitted");
+    }
 
     if (courseIdRef.current && currentQuestionId) {
       console.log(
@@ -212,10 +255,15 @@ const AnswerPage: React.FC = () => {
       );
       incrementViews(courseIdRef.current, currentQuestionId);
     }
+
+    const allCorrectSelected = answerChoices.every(
+      (a) => (a.answer && a.isSelected) || (!a.answer && !a.isSelected)
+    );
+
+    setShowConfetti(allCorrectSelected);
   };
 
   const toggleSelectedAnswer = (inputAnswer: QuestionAnswer) => {
-    console.log("[toggleSelectedAnswer] Toggling:", inputAnswer.key);
     setAnswerChoices((prev) =>
       prev.map((answer) =>
         answer.key === inputAnswer.key
@@ -230,6 +278,8 @@ const AnswerPage: React.FC = () => {
     setStudiedUnit("");
   };
 
+  if (error) return notFound();
+
   return (
     <SidebarProvider
       style={
@@ -240,12 +290,11 @@ const AnswerPage: React.FC = () => {
       }
     >
       <AppSidebar variant="inset" />
-
       <SidebarInset className="px-8 py-10 space-y-10 overflow-y-auto">
-        <div className="space-y-6">
-          
-          {loading && <LoadingScreen />}
+        <SiteHeader />
 
+        <div className="space-y-6">
+          {loading && <LoadingScreen />}
           {!currentQuestionId && !loading && (
             <p className="text-center text-sm">
               Hmm... looks like you aren&apos;t studying anything. Go out and
@@ -314,7 +363,7 @@ const AnswerPage: React.FC = () => {
             </div>
           )}
 
-          {question && (
+          {question && !loading && (
             <div className="bg-[var(--card)] rounded-xl p-6">
               <h2 className="text-white break-words whitespace-pre-wrap">
                 {question}
@@ -322,44 +371,37 @@ const AnswerPage: React.FC = () => {
             </div>
           )}
 
-          <div className="space-y-4">
-            {hints.map((hint) => (
-              <AnswerHintCard key={hint.key} hint={hint} />
-            ))}
-          </div>
+          {hints && !loading && (
+            <div className="space-y-4">
+              {hints.map((hint) => (
+                <AnswerHintCard key={hint.key} hint={hint} />
+              ))}
+            </div>
+          )}
 
-          {currentQuestionId && (
+          {answerChoices && !loading && (
             <div className="bg-[var(--card)] rounded-xl p-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {(() => {
-                  const showConfetti =
-                    answersSubmitted &&
-                    answerChoices.every((a) => a.answer === a.isSelected);
-
-                  return answerChoices.map((answer, idx) => {
-                    const isCorrect =
-                      answersSubmitted && answer.isSelected && answer.answer;
-
-                    const card = (
-                      <div className="h-full w-full">
-                        <AnswerChoiceCard
-                          key={answer.key}
-                          answer={answer}
-                          onSelect={toggleSelectedAnswer}
-                          disabled={answersSubmitted}
-                          submitted={answersSubmitted}
-                        />
-                      </div>
-                    );
-
+                  return answerChoices.map((answer) => {
                     return (
                       <div key={answer.key} className="h-full w-full flex">
-                        {showConfetti && isCorrect && idx === 0 ? (
+                        {showConfetti ? (
                           <CorrectAnswerCelebration>
-                            {card}
+                            <AnswerChoiceCard
+                              answer={answer}
+                              onSelect={toggleSelectedAnswer}
+                              disabled={answersSubmitted}
+                              submitted={answersSubmitted}
+                            />
                           </CorrectAnswerCelebration>
                         ) : (
-                          card
+                          <AnswerChoiceCard
+                            answer={answer}
+                            onSelect={toggleSelectedAnswer}
+                            disabled={answersSubmitted}
+                            submitted={answersSubmitted}
+                          />
                         )}
                       </div>
                     );
@@ -390,14 +432,16 @@ const AnswerPage: React.FC = () => {
           )}
         </div>
 
-        {currentQuestionId && courseName && unitName && selectedCourseId && (
+        {currentQuestionId && courseName && unitName && courseIdRef && (
           <AnswerBottomBar
             questionId={currentQuestionId}
             courseName={courseName}
             unitName={unitName}
-            selectedCourseId={selectedCourseId}
+            selectedCourseId={selectedCourseId || undefined}
+            courseId={courseIdRef.current as string}
           />
         )}
+
         <CourseDialog
           open={courseOpen}
           onOpenChange={setCourseOpen}
@@ -405,6 +449,7 @@ const AnswerPage: React.FC = () => {
           type={"learning"}
           cache={false}
         />
+
         <AllCombos open={allCombosUsed} onOpenChange={setAllCombosUsed} />
       </SidebarInset>
     </SidebarProvider>

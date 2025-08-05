@@ -24,7 +24,7 @@ export function AnswerHintCard({ hint }: Props) {
           />
         </div>
       )}
-      {hint.content && <p className="text-zinc-300 text-sm">{hint.content}</p>}
+      {hint.content && <p className="text-zinc-300 text-base">{hint.content}</p>}
     </div>
   );
 }

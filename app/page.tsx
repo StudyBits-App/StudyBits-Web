@@ -2,6 +2,7 @@
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { CourseCard } from "@/components/course-card";
+import { SiteHeader } from "@/components/site-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -52,6 +53,7 @@ export default function HomepPage() {
     >
       <AppSidebar variant="inset" />
       <SidebarInset className="p-6 space-y-6 min-h-screen">
+        <SiteHeader />
         <Card className="bg-[var(--card)] border border-zinc-800">
           <CardContent className="p-4">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">

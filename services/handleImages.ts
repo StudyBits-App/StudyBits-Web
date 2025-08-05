@@ -8,7 +8,7 @@ import {
 } from "firebase/storage";
 
 export const uploadImageToFirebase = async (
-  file: File | Blob,
+  file: File,
   folder: string
 ): Promise<string> => {
   const storage = getStorage();

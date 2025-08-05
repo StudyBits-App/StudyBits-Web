@@ -8,7 +8,8 @@ import {
   arrayUnion,
   arrayRemove,
 } from "firebase/firestore";
-import { QuestionInfo } from "@/utils/interfaces";
+import { QuestionInfo, QuestionMetadata } from "@/utils/interfaces";
+import { getCourseData, getUnitForCourse } from "./courseUnitData";
 
 const db = getFirestore();
 
@@ -27,6 +28,34 @@ export const getQuestionInfoById = async (
     }
   } catch (error) {
     console.error("Error fetching question info:", error);
+    throw error;
+  }
+};
+
+export const idToAnswerElement = async (
+  questionId: string
+): Promise<QuestionMetadata> => {
+  try {
+    const questionData = await getQuestionInfoById(questionId);
+
+    if (questionData?.course && questionData?.unit) {
+      const courseData = await getCourseData(questionData.course);
+      const unitData = await getUnitForCourse(
+        courseData.key,
+        questionData.unit
+      );
+
+      return {
+        courseName: courseData.name,
+        unitName: unitData.name,
+        questionId,
+        courseId: courseData.key,
+      };
+    }
+
+    throw new Error("Missing course or unit data in question.");
+  } catch (error) {
+    console.error("Error converting ID to answer element:", error);
     throw error;
   }
 };
@@ -174,9 +203,7 @@ export const removeLikeOrDislike = async (
   }
 };
 
-export const checkIfSubscribed = async (
-  course: string
-): Promise<boolean> => {
+export const checkIfSubscribed = async (course: string): Promise<boolean> => {
   try {
     const mapStr = localStorage.getItem("subscriptions");
     if (!mapStr) return false;
@@ -188,7 +215,6 @@ export const checkIfSubscribed = async (
     return false;
   }
 };
-
 
 export const subscribeToCourse = async (
   course: string,
@@ -205,7 +231,6 @@ export const subscribeToCourse = async (
     await updateDoc(courseDoc, {
       numSubscribers: increment(1),
     });
-
 
     const mapStr = localStorage.getItem("subscriptions");
     const map: Record<string, string> = mapStr ? JSON.parse(mapStr) : {};
@@ -279,7 +304,11 @@ export const incrementViews = async (
   }
 };
 
-export const addAnsweredQuestion = async (questionId: string, uid: string, selectedCourse: string): Promise<void> => {
+export const addAnsweredQuestion = async (
+  questionId: string,
+  uid: string,
+  selectedCourse: string
+): Promise<void> => {
   try {
     const userCourseDoc = doc(db, "learning", uid, "courses", selectedCourse);
     await updateDoc(userCourseDoc, {
@@ -289,4 +318,4 @@ export const addAnsweredQuestion = async (questionId: string, uid: string, selec
     console.error("Error adding answered question:", error);
     throw error;
   }
-}
+};

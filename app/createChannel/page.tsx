@@ -16,6 +16,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Channel } from "@/utils/interfaces";
 import LoadingScreen from "@/components/loading";
+import { SiteHeader } from "@/components/site-header";
 
 export default function CreateChannelPage() {
   const { user } = useAuth();
@@ -107,6 +108,8 @@ export default function CreateChannelPage() {
     >
       <AppSidebar variant="inset" />
       <SidebarInset className="p-6 space-y-6 min-h-screen">
+        <SiteHeader />
+
         <div className="py-12 space-y-6 px-6 min-h-screen bg-[var(--background)]">
           <h1 className="text-white text-2xl font-bold">Create Your Channel</h1>
 

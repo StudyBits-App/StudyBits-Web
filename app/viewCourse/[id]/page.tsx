@@ -28,13 +28,14 @@ import {
   IconCircle,
   IconCircleCheckFilled,
   IconPlus,
+  IconQuestionMark,
   IconTrash,
 } from "@tabler/icons-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { deleteLearning } from "@/services/deleteCourseUnitData";
 import { CourseDialog } from "@/components/course-unit-selector";
 import { cacheSubscribedCourses } from "@/services/cacheServices";
-import { useOnRefresh } from "@/utils/onRefresh";
+import { SiteHeader } from "@/components/site-header";
 
 export default function ViewCoursesPage() {
   const { id } = useParams();
@@ -73,7 +74,8 @@ export default function ViewCoursesPage() {
         setStudiedCourse(isStudied);
         setIsSwitchOn(useUnits);
         setStudyingUnits(studyingUnits);
-
+        const subscribed = await checkIfSubscribed(id);
+        setSubscribedTo(subscribed);
       } catch (err) {
         console.error("Error loading course:", err);
       }
@@ -82,21 +84,18 @@ export default function ViewCoursesPage() {
     fetchCourseData();
   }, [id, user?.uid]);
 
-  useOnRefresh(() => {
-    const refreshSub = async () => {
-      try {
-        await cacheSubscribedCourses(user?.uid as string);
-        const subCourses = await getSubscribedCourses(id as string);
-        setSubscribedCourses(subCourses);
-        const isSub = await checkIfSubscribed(id as string);
-        setSubscribedTo(isSub);
-        setSubscribedTo(isSub);
-      } catch (err) {
-        console.log("Error getting sub status:", err);
-      }
+  useEffect(() => {
+    const refreshCache = async () => {
+      if (!user?.uid) return;
+      await cacheSubscribedCourses(user.uid);
+      const subCourses = await getSubscribedCourses(id as string);
+      setSubscribedCourses(subCourses);
+      setSubscribedTo(subCourses.includes(id as string));
     };
-    refreshSub();
-  });
+
+    refreshCache();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleAddCourse = async () => {
     if (!user?.uid || typeof id !== "string") return;
@@ -158,6 +157,10 @@ export default function ViewCoursesPage() {
     }
   };
 
+  const viewQuestionsRedirect = (courseId: string, unitId: string) => {
+    router.push(`/viewQuestions/${courseId}/${unitId}`);
+  };
+
   if (notFoundError) {
     notFound();
   }
@@ -177,8 +180,9 @@ export default function ViewCoursesPage() {
       }
     >
       <AppSidebar variant="inset" />
-
       <SidebarInset className="p-6 min-h-screen overflow-x-hidden">
+        <SiteHeader />
+
         <div className="w-full space-y-6">
           <Card className="bg-[var(--card)] border border-zinc-800">
             <CardContent className="p-4">
@@ -230,8 +234,8 @@ export default function ViewCoursesPage() {
               <div className="space-y-3 rounded-lg bg-[var(--card)] p-4 w-full">
                 {units.map((unit) => (
                   <div
+                    className="flex items-center gap-4 bg-[var(--card)] rounded-xl p-4 shadow-sm border border-zinc-600"
                     key={unit.key}
-                    className="flex items-start gap-4 bg-[var(--card)] rounded-xl p-4 shadow-sm border border-zinc-600"
                   >
                     {studiedCourse && isSwitchOn && (
                       <button
@@ -248,12 +252,23 @@ export default function ViewCoursesPage() {
                         )}
                       </button>
                     )}
+
                     <div className="flex-1 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <h2 className="text-white text-base font-semibold truncate">
-                          {unit.name || "Untitled Unit"}
+                      <div className="flex items-start justify-between gap-2">
+                        <h2 className="text-white text-base break-words min-w-0">
+                          {unit.name}
                         </h2>
+
+                        <button
+                          onClick={() =>
+                            viewQuestionsRedirect(id as string, unit.key)
+                          }
+                          className="flex-shrink-0 text-zinc-400 hover:text-teal-400 transition"
+                        >
+                          <IconQuestionMark size={20} />
+                        </button>
                       </div>
+
                       {unit.description && (
                         <p className="text-sm text-zinc-400 whitespace-pre-line">
                           {unit.description}
